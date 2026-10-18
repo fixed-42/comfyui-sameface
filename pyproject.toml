@@ -1,0 +1,18 @@
+[project]
+name = "comfyui-sameface"
+description = "Measure and repair face drift after an image edit: RAFT optical flow inside a Grounded SAM 2 face mask, and a smooth warp that moves the features back."
+version = "0.1.0"
+license = { file = "LICENSE" }
+dependencies = ["numpy", "scipy", "opencv-python", "transformers>=4.56"]
+
+[project.urls]
+Repository = "https://github.com/fixed-42/comfyui-sameface"
+
+[tool.comfy]
+PublisherId = "fixed-42"
+DisplayName = "SameFace"
+Icon = ""
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
