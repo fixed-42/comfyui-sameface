@@ -1,8 +1,10 @@
 """The before and the after in one frame, with the measured points drawn on.
 
 Two pictures the same size, for a slider: the before with its points, and
-the after - moved by the flat fit, or repaired - with where its points ended
-up and an arrow from each to where the before has it. A mesh joins the
+the after moved by the flat fit, with where its points ended up and an arrow
+from each to where the before has it. To see a repair, measure the repaired
+image against the before and view that: the points are then measured on the
+repaired pixels, not placed by the warp that made them. A mesh joins the
 points into triangles, the same triangles on both sides, so a part of the
 face that drifted shows as triangles that change shape across the slider.
 
@@ -35,7 +37,6 @@ DROPPED = (0xd9, 0x59, 0x26)
 MESH_BEFORE = (0x9b, 0xff, 0xc8)
 MESH_AFTER = (0xff, 0xa8, 0xa0)
 EXAGGERATIONS = (1, 5, 10, 20)
-SHOWN = ("flat fit", "repaired")
 # The marks are drawn this many times larger than the picture and scaled
 # down onto it, which is what makes a line finer than one pixel possible.
 SUPERSAMPLE = 4
@@ -127,29 +128,22 @@ class _Marks:
         self.image[...] = np.clip(self.image * (1 - alpha) + colour * alpha, 0, 255).astype(np.uint8)
 
 
-def views(drift, frame, shown="flat fit", fit="similarity", strength=1.0,
-          points=True, mesh=True, exaggeration=1, dropped=True, floor=0.05):
+def views(drift, frame, fit="similarity", points=True, mesh=True, exaggeration=1,
+          dropped=True, floor=0.05):
     """`(before_view, after_view)`, uint8 RGB, both `frame` in size.
 
-    `shown` is which after: moved by the `fit` alone, or repaired at
-    `strength` - which always builds on the similarity fit, as Repair does.
-    `dropped` marks the points that failed the flow's round trip.
+    The after is moved by the `fit` alone. `dropped` marks the points that
+    failed the flow's round trip.
     """
     after_px, before_px, _ = chosen(drift.record, drift.ears)
     source = geometry.into_frame(after_px, drift.after_size, frame)
     target = geometry.into_frame(before_px, drift.before_size, frame)
     width, height = (int(round(side)) for side in frame)
 
-    if shown == "repaired":
-        warp = Warp(source, target, geometry.fit(source, target, "similarity"), frame)
-        after_image = warp.render(drift.after, strength)[..., :3].copy()
-        landed = warp.moved(source, strength)
-        title = f"after, repaired at {strength:.2f} (points moved by the warp, not re-measured)"
-    else:
-        warp = Warp(source, target, geometry.fit(source, target, fit), frame)
-        after_image = warp.render(drift.after, 0.0)[..., :3].copy()
-        landed = geometry.apply(warp.matrix, source)
-        title = f"after, {fit} fit"
+    warp = Warp(source, target, geometry.fit(source, target, fit), frame)
+    after_image = warp.render(drift.after, 0.0)[..., :3].copy()
+    landed = geometry.apply(warp.matrix, source)
+    title = f"after, {fit} fit"
 
     # The before brought into the frame the same way the after is: a cover
     # fit, which for the before's own shape is a plain resize.

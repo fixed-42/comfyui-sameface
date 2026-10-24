@@ -99,12 +99,50 @@ def test_a_repair_of_a_still_pair_is_the_after_again():
     after = before.copy()
     drift = measure(before, after, oval_masker, still)
 
-    repaired, covered = repair(drift)
+    for framing in ("after", "before"):
+        repaired, covered = repair(drift, framing=framing)
 
-    assert repaired.shape[:2] == before.shape[:2]
-    assert covered[10:-10, 10:-10].all()
+        assert repaired.shape[:2] == before.shape[:2]
+        assert covered[10:-10, 10:-10].all()
+        difference = np.abs(repaired[10:-10, 10:-10].astype(int) - after[10:-10, 10:-10])
+        assert difference.mean() < 1.0
+
+
+def test_a_repair_in_the_afters_frame_is_the_afters_size_and_all_covered():
+    before = textured(320, 400)
+    after = cv2.resize(before, (480, 600), interpolation=cv2.INTER_CUBIC)
+    drift = measure(before, after, oval_masker, a_patch_moved(6.0))
+
+    repaired, covered = repair(drift, framing="after")
+
+    assert repaired.shape == after.shape
+    assert covered.all()
+
+
+def test_a_resize_repaired_in_the_afters_frame_is_the_after_again():
+    """The before's points are carried into the after by the after's own
+    pose. Carried the wrong way, the face would be moved and scaled."""
+    before = textured(320, 400)
+    after = cv2.resize(before, (640, 800), interpolation=cv2.INTER_CUBIC)
+    drift = measure(before, after, oval_masker, still)
+
+    repaired, _ = repair(drift, framing="after")
+
     difference = np.abs(repaired[10:-10, 10:-10].astype(int) - after[10:-10, 10:-10])
     assert difference.mean() < 1.0
+
+
+def test_a_repair_in_the_afters_frame_moves_the_face_and_leaves_the_rest():
+    before = textured(320, 400)
+    after = before.copy()
+    drift = measure(before, after, oval_masker, a_patch_moved(6.0))
+
+    repaired, _ = repair(drift, framing="after")
+
+    centre = (slice(170, 230), slice(130, 190))
+    assert np.abs(repaired[centre].astype(int) - after[centre]).mean() > 5.0
+    corner = (slice(0, 40), slice(0, 40))
+    assert np.array_equal(repaired[corner], after[corner])
 
 
 def test_a_repair_keeps_the_afters_detail():
@@ -135,8 +173,8 @@ def test_the_two_views_share_one_frame():
     drift = measure(before, before.copy(), oval_masker, a_patch_moved(6.0))
     frame = repair_frame(drift)
 
-    for shown in ("flat fit", "repaired"):
-        first, second = views(drift, frame, shown=shown, exaggeration=5)
+    for fit in ("similarity", "affine"):
+        first, second = views(drift, frame, fit=fit, exaggeration=5)
         assert first.shape == second.shape == (int(frame[1]), int(frame[0]), 3)
         assert first.dtype == second.dtype == np.uint8
 

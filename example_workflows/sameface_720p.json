@@ -1,6 +1,6 @@
 {
- "last_node_id": 17,
- "last_link_id": 18,
+ "last_node_id": 19,
+ "last_link_id": 21,
  "nodes": [
   {
    "id": 1,
@@ -317,7 +317,8 @@
     "Node name for S&R": "SameFaceRepair"
    },
    "widgets_values": [
-    1.0
+    1.0,
+    "after"
    ]
   },
   {
@@ -389,7 +390,8 @@
      "name": "drift",
      "type": "SAMEFACE_DRIFT",
      "links": [
-      18
+      18,
+      19
      ],
      "slot_index": 0
     },
@@ -555,9 +557,7 @@
     "Node name for S&R": "SameFaceView"
    },
    "widgets_values": [
-    "flat fit",
     "similarity",
-    1.0,
     true,
     true,
     "5",
@@ -752,6 +752,98 @@
    "widgets_values": [
     "similarity"
    ]
+  },
+  {
+   "id": 18,
+   "type": "SameFaceView",
+   "title": "View: the repair, measured",
+   "pos": [
+    40,
+    2080
+   ],
+   "size": [
+    320,
+    260
+   ],
+   "flags": {},
+   "order": 11,
+   "mode": 0,
+   "inputs": [
+    {
+     "name": "drift",
+     "type": "SAMEFACE_DRIFT",
+     "link": 19
+    }
+   ],
+   "outputs": [
+    {
+     "name": "before_view",
+     "type": "IMAGE",
+     "links": [
+      20
+     ],
+     "slot_index": 0
+    },
+    {
+     "name": "after_view",
+     "type": "IMAGE",
+     "links": [
+      21
+     ],
+     "slot_index": 1
+    }
+   ],
+   "properties": {
+    "Node name for S&R": "SameFaceView"
+   },
+   "widgets_values": [
+    "similarity",
+    true,
+    true,
+    "5",
+    true
+   ]
+  },
+  {
+   "id": 19,
+   "type": "ImageCompare",
+   "title": "Slider: before / repaired",
+   "pos": [
+    420,
+    2080
+   ],
+   "size": [
+    640,
+    700
+   ],
+   "flags": {},
+   "order": 12,
+   "mode": 0,
+   "inputs": [
+    {
+     "name": "compare_view",
+     "type": "IMAGECOMPARE",
+     "widget": {
+      "name": "compare_view"
+     },
+     "link": 20
+    },
+    {
+     "name": "image_a",
+     "type": "IMAGE",
+     "link": 21
+    },
+    {
+     "name": "image_b",
+     "type": "IMAGE",
+     "link": null
+    }
+   ],
+   "outputs": [],
+   "properties": {
+    "Node name for S&R": "ImageCompare"
+   },
+   "widgets_values": []
   }
  ],
  "links": [
@@ -898,6 +990,30 @@
    17,
    0,
    "SAMEFACE_DRIFT"
+  ],
+  [
+   19,
+   9,
+   0,
+   18,
+   0,
+   "SAMEFACE_DRIFT"
+  ],
+  [
+   20,
+   18,
+   0,
+   19,
+   0,
+   "IMAGE"
+  ],
+  [
+   21,
+   18,
+   1,
+   19,
+   1,
+   "IMAGE"
   ]
  ],
  "groups": [],

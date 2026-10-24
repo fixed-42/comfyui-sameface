@@ -26,7 +26,13 @@ node of its own from Measure's `drift`, and runs no models.
 The before image with every measured point coloured by how far the fit left
 it.
 
-**SameFace Repair**: `drift` + `strength` → `repaired`, `covered`
+**SameFace Repair**: `drift` + `strength`, `framing` → `repaired`, `covered`
+
+Moves the after's features back to where the before has them. With `framing`
+`after` (the default) the repaired image keeps the edit's framing and size and
+only the face changes. With `before`, the whole after is lined up with the
+before, enlarged so its detail is kept; where it does not reach is black, and
+`covered` says where that is.
 
 **SameFace View**: `drift` → `before_view`, `after_view`
 
@@ -34,8 +40,8 @@ The before and the after in one frame, with the measured points drawn on: green
 on the before, red on the after with an arrow to where the before has each
 point, and a mesh joining the points, the same triangles on both sides, so a
 part of the face that drifted shows as triangles changing shape. Feed both into
-**Compare Images** for a slider, or into Save Image to keep them. The after can
-be shown moved by the flat fit (the arrows are then the drift) or repaired. An
+**Compare Images** for a slider, or into Save Image to keep them. The after is
+moved by the fit you choose, so the arrows are the drift it leaves. An
 exaggeration setting stretches the arrows only and is printed on the picture.
 Orange crosses on the before mark the gaps in the grid: points the flow could
 not vouch for (see below).
@@ -52,9 +58,10 @@ median drift of its points, in the shift map's colours, with the figure
 printed. The cells are a grid over the face, not named features: a cell over
 the eyes is not "the eyes".
 
-Measure the repaired image again to see what is left. The warp puts its own
-points where they belong by construction, so only a fresh measurement on the
-new pixels can say whether it helped.
+Measure the repaired image against the before to see what is left, and View
+that measurement for a before/repaired slider. The warp puts its own points
+where they belong by construction, so only a fresh measurement on the new
+pixels can say whether it helped.
 
 Batches: one before with any number of afters, or as many befores as afters.
 
@@ -74,9 +81,11 @@ Batches: one before with any number of afters, or as many befores as afters.
    the drift there, as a percentage of face size.
    - Large under similarity but small under affine: the edit mostly stretched the face.
    - Large under both: features moved against each other.
-4. **Repair**: the similarity fit, then a smooth warp: a thin-plate spline
-   through the points, eased to nothing just beyond the face, so hair and
-   background are left as the flat fit put them.
+4. **Repair**: a smooth warp, a thin-plate spline through the points, eased
+   to nothing just beyond the face, so hair and background are left as they
+   were. In the after's framing, the before's points are first carried into
+   the after by the after's own pose; in the before's, the after is first
+   moved by the similarity fit.
 
 RAFT's noise floor is **0.05% of face size**: the median drift it reports on a
 pure resample, where the true drift is zero. On the shift map, grey is within that

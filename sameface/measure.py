@@ -41,8 +41,12 @@ GRID_STEP = 16
 # flow both ways and see whether it comes back. Where it does not, the flow is
 # guessing - an occlusion, or texture the edit rewrote.
 CONSISTENCY_PX = 1.5
-# The largest side a repair is drawn at.
+# The largest side a repair is drawn at, in the before's frame.
 MAX_SIDE = 6000
+# Whose framing a repair keeps: the after's own (the edit's composition, only
+# the face's features moved), or the before's (the whole after lined up with
+# the before, as the measurement sees it).
+FRAMINGS = ("after", "before")
 
 
 @dataclass
@@ -239,16 +243,33 @@ def repair_frame(drift, max_side=MAX_SIDE):
     return tuple(float(round(side * enlarge)) for side in frame)
 
 
-def repair(drift, strength=1.0, frame=None):
+def repair(drift, strength=1.0, frame=None, framing="after"):
     """The after image with its features moved back, and where it is covered.
 
-    The flat similarity fit, then the smooth warp on top, from the same points
-    the measurement chose. `strength` is how far along the warp goes: 0 is the
-    flat fit alone. Returns `(rgb, covered)`, uint8 and bool, in `frame`.
+    `framing="after"` keeps the after as the edit framed it, at its own size:
+    the before's points are carried into the after by the after's own pose (a
+    similarity fit, before onto after), and the smooth warp moves each feature
+    to where the before has it in that pose. Beyond the face the warp eases
+    to nothing, so the rest of the after is untouched and all of it is covered.
+
+    `framing="before"` lines the whole after up with the before: the flat
+    similarity fit, then the smooth warp on top, drawn in `frame` (by default
+    `repair_frame`). Where the after does not reach is uncovered.
+
+    `strength` is how far along the warp goes: 0 is the after unchanged, or
+    the flat fit alone. Returns `(rgb, covered)`, uint8 and bool.
     """
-    frame = frame or repair_frame(drift)
     record = drift.record
     after_px, before_px, _ = chosen(record, drift.ears)
+    if framing == "after":
+        pose = geometry.fit(before_px, after_px, "similarity")
+        rendered = render_repaired(drift.after, after_px, geometry.apply(pose, before_px),
+                                   np.array([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0]]),
+                                   drift.after_size, strength=strength)
+        return rendered[..., :3], rendered[..., 3] > 0
+    if framing != "before":
+        raise ValueError(f"framing is one of {FRAMINGS}, not {framing!r}")
+    frame = frame or repair_frame(drift)
     source = geometry.into_frame(after_px, drift.after_size, frame)
     target = geometry.into_frame(before_px, drift.before_size, frame)
     matrix = geometry.fit(source, target, "similarity")
