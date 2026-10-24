@@ -151,14 +151,25 @@ def sample_flow(flows, before, after, before_region, after_region,
         working_size=working_size, consistency_px=consistency_px)
 
 
+def _used(record, ears):
+    """Which grid points feed a fit: on the face (or an ear, if `ears`), and
+    their round trip came back."""
+    return np.array([outcome.startswith("kept") and (tag == "face" or (tag == "ear" and ears))
+                     for outcome, tag in zip(record.outcomes, record.tags)], bool)
+
+
+def chosen_parts(record, ears=True):
+    """`face` or `ear` for each point `chosen` returns, in the same order."""
+    return [tag for tag, use in zip(record.tags, _used(record, ears)) if use]
+
+
 def chosen(record, ears=True):
     """The points that feed a fit, in image pixels: after, before, confidence.
 
     A point counts when it is on the face (or an ear, if `ears`) and its round
     trip came back.
     """
-    use = np.array([outcome.startswith("kept") and (tag == "face" or (tag == "ear" and ears))
-                    for outcome, tag in zip(record.outcomes, record.tags)], bool)
+    use = _used(record, ears)
     if not use.any():
         raise ValueError("no point on the face passed the flow's round-trip check; "
                          "the two images may share no recoverable correspondence")

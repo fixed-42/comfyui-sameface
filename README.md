@@ -15,6 +15,9 @@ same person. SameFace measures that drift and repairs it.
 - `similarity_median`, `affine_median`: the headline figures, % of face size
 - `before_mask`, `after_mask`: the face masks used
 - `drift`: everything measured, for Repair
+- `points`: every measured point as JSON, one list per column (`pair`, `x`,
+  `y`, `dx_`/`dy_`/`drift_` for each fit, `confidence`, `part`), for your own
+  plots or analysis
 
 **SameFace Repair**: `drift` + `strength` → `repaired`, `covered`
 
@@ -29,6 +32,18 @@ be shown moved by the flat fit (the arrows are then the drift) or repaired. An
 exaggeration setting stretches the arrows only and is printed on the picture.
 Orange crosses on the before mark the gaps in the grid: points the flow could
 not vouch for (see below).
+
+**SameFace Drift Histogram**: `drift` → `histogram`
+
+How many points drifted how far: bars for the similarity fit, an outline for
+the affine fit, each median marked, and the noise floor dashed.
+
+**SameFace Drift Zones**: `drift` + `fit`, `rows`, `cols` → `zones`
+
+The before face cut into a grid (4 × 3 by default), each cell tinted by the
+median drift of its points, in the shift map's colours, with the figure
+printed. The cells are a grid over the face, not named features: a cell over
+the eyes is not "the eyes".
 
 Measure the repaired image again to see what is left. The warp puts its own
 points where they belong by construction, so only a fresh measurement on the

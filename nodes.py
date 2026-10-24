@@ -1,4 +1,5 @@
-"""The ComfyUI nodes: SameFace Measure, Repair and View.
+"""The ComfyUI nodes: SameFace Measure, Repair, View, Drift Histogram and
+Drift Zones.
 
 Measure takes a before and an after and says how far the edit moved the face,
 in figures and as a map. Repair takes what Measure found and moves the after's
@@ -6,10 +7,13 @@ features back. A repaired image is judged by measuring it again - the warp
 puts its own points where they belong by construction, so only a fresh
 measurement on the new pixels can say whether it helped. View draws the
 measured points on the before and the after, in one frame, for a slider.
+Drift Histogram and Drift Zones draw the measured points as a chart and as
+a grid over the face.
 
 Batches: one before with any number of afters, or as many befores as afters,
 paired in order.
 """
+import json
 from functools import lru_cache
 
 import numpy as np
@@ -23,6 +27,7 @@ from .sameface import drawing
 from .sameface.geometry import FITS
 from .sameface.measure import NOISE_FLOOR, measure, repair, repair_frame
 from .sameface.models import FaceMasker, Flow
+from .sameface.plots import drift_histogram, drift_zones, point_table, same_size
 from .sameface.views import EXAGGERATIONS, SHOWN, views
 
 Drift = io.Custom("SAMEFACE_DRIFT")
@@ -98,6 +103,12 @@ class SameFaceMeasure(io.ComfyNode):
                 io.Float.Output("affine_median", tooltip="Median drift after an affine fit, % of face size (first pair)."),
                 io.Mask.Output("before_mask", tooltip="The face mask on the before image."),
                 io.Mask.Output("after_mask", tooltip="The face mask on the after image."),
+                io.String.Output(
+                    "points",
+                    tooltip="Every measured point as JSON, one list per column: where it is "
+                            "on the before (x, y, pixels), how far each fit leaves it (dx, dy "
+                            "in pixels; drift in % of face size), confidence and part. "
+                            "A pair column numbers the pairs in a batch."),
             ],
         )
 
@@ -121,6 +132,7 @@ class SameFaceMeasure(io.ComfyNode):
             drifts[0].fits["affine"].median,
             _mask([drift.before_region.mask for drift in drifts]),
             _mask([drift.after_region.mask for drift in drifts]),
+            json.dumps(point_table(drifts)),
         )
 
 
@@ -219,10 +231,62 @@ class SameFaceView(io.ComfyNode):
         return io.NodeOutput(_image(befores), _image(afters))
 
 
+class SameFaceHistogram(io.ComfyNode):
+    @classmethod
+    def define_schema(cls):
+        return io.Schema(
+            node_id="SameFaceHistogram",
+            display_name="SameFace Drift Histogram",
+            category="SameFace",
+            description=(
+                "How many of the measured points drifted how far, after the similarity "
+                "fit (bars) and the affine fit (outline), with each median and the noise "
+                "floor marked. Reads what Measure found; runs no models."),
+            search_aliases=["drift chart", "drift distribution", "plot"],
+            inputs=[Drift.Input("drift", tooltip="From SameFace Measure.")],
+            outputs=[io.Image.Output("histogram")],
+        )
+
+    @classmethod
+    def execute(cls, drift) -> io.NodeOutput:
+        return io.NodeOutput(_image(same_size([drift_histogram(each, NOISE_FLOOR)
+                                               for each in drift])))
+
+
+class SameFaceZones(io.ComfyNode):
+    @classmethod
+    def define_schema(cls):
+        return io.Schema(
+            node_id="SameFaceZones",
+            display_name="SameFace Drift Zones",
+            category="SameFace",
+            description=(
+                "The before face cut into a grid, each cell tinted by the median drift of "
+                "the points in it and the figure printed, in the shift map's colours. The "
+                "cells are a grid over the face, not named features. Reads what Measure "
+                "found; runs no models."),
+            search_aliases=["drift by region", "drift heatmap", "plot"],
+            inputs=[
+                Drift.Input("drift", tooltip="From SameFace Measure."),
+                io.Combo.Input("fit", options=list(FITS), default="similarity",
+                               tooltip="Whose leftover drift the cells show."),
+                io.Int.Input("rows", default=4, min=1, max=12),
+                io.Int.Input("cols", default=3, min=1, max=12),
+            ],
+            outputs=[io.Image.Output("zones")],
+        )
+
+    @classmethod
+    def execute(cls, drift, fit, rows, cols) -> io.NodeOutput:
+        return io.NodeOutput(_image(same_size([drift_zones(each, fit, NOISE_FLOOR, rows, cols)
+                                               for each in drift])))
+
+
 class SameFaceExtension(ComfyExtension):
     @override
     async def get_node_list(self) -> list[type[io.ComfyNode]]:
-        return [SameFaceMeasure, SameFaceRepair, SameFaceView]
+        return [SameFaceMeasure, SameFaceRepair, SameFaceView, SameFaceHistogram,
+                SameFaceZones]
 
 
 async def comfy_entrypoint() -> SameFaceExtension:
