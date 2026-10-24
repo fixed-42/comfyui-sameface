@@ -9,15 +9,22 @@ same person. SameFace measures that drift and repairs it.
 
 ## Nodes
 
+Measure runs the models and gives the figures. Every picture is drawn by a
+node of its own from Measure's `drift`, and runs no models.
+
 **SameFace Measure**: `before` + `after` →
 - `report`: the figures in words
-- `shift_map`: the before image with every measured point coloured by how far it is off
 - `similarity_median`, `affine_median`: the headline figures, % of face size
 - `before_mask`, `after_mask`: the face masks used
-- `drift`: everything measured, for Repair
+- `drift`: everything measured, for Repair and the nodes that draw it
 - `points`: every measured point as JSON, one list per column (`pair`, `x`,
   `y`, `dx_`/`dy_`/`drift_` for each fit, `confidence`, `part`), for your own
   plots or analysis
+
+**SameFace Shift Map**: `drift` + `fit` → `shift_map`
+
+The before image with every measured point coloured by how far the fit left
+it.
 
 **SameFace Repair**: `drift` + `strength` → `repaired`, `covered`
 
@@ -72,7 +79,7 @@ Batches: one before with any number of afters, or as many befores as afters.
    background are left as the flat fit put them.
 
 RAFT's noise floor is **0.05% of face size**: the median drift it reports on a
-pure resample, where the true drift is zero. On the map, grey is within that
+pure resample, where the true drift is zero. On the shift map, grey is within that
 floor; the greens step up at 2, 5, 10 and 20 times it.
 
 ## Install

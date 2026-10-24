@@ -1,6 +1,6 @@
 {
- "last_node_id": 15,
- "last_link_id": 16,
+ "last_node_id": 17,
+ "last_link_id": 18,
  "nodes": [
   {
    "id": 1,
@@ -116,17 +116,10 @@
      "type": "SAMEFACE_DRIFT",
      "links": [
       6,
-      12
+      12,
+      17
      ],
      "slot_index": 0
-    },
-    {
-     "name": "shift_map",
-     "type": "IMAGE",
-     "links": [
-      3
-     ],
-     "slot_index": 1
     },
     {
      "name": "report",
@@ -134,19 +127,19 @@
      "links": [
       4
      ],
-     "slot_index": 2
+     "slot_index": 1
     },
     {
      "name": "similarity_median",
      "type": "FLOAT",
      "links": [],
-     "slot_index": 3
+     "slot_index": 2
     },
     {
      "name": "affine_median",
      "type": "FLOAT",
      "links": [],
-     "slot_index": 4
+     "slot_index": 3
     },
     {
      "name": "before_mask",
@@ -154,11 +147,17 @@
      "links": [
       5
      ],
-     "slot_index": 5
+     "slot_index": 4
     },
     {
      "name": "after_mask",
      "type": "MASK",
+     "links": [],
+     "slot_index": 5
+    },
+    {
+     "name": "points",
+     "type": "STRING",
      "links": [],
      "slot_index": 6
     }
@@ -167,8 +166,7 @@
     "Node name for S&R": "SameFaceMeasure"
    },
    "widgets_values": [
-    true,
-    "similarity"
+    true
    ]
   },
   {
@@ -390,16 +388,10 @@
     {
      "name": "drift",
      "type": "SAMEFACE_DRIFT",
-     "links": [],
-     "slot_index": 0
-    },
-    {
-     "name": "shift_map",
-     "type": "IMAGE",
      "links": [
-      10
+      18
      ],
-     "slot_index": 1
+     "slot_index": 0
     },
     {
      "name": "report",
@@ -407,29 +399,35 @@
      "links": [
       11
      ],
-     "slot_index": 2
+     "slot_index": 1
     },
     {
      "name": "similarity_median",
      "type": "FLOAT",
      "links": [],
-     "slot_index": 3
+     "slot_index": 2
     },
     {
      "name": "affine_median",
      "type": "FLOAT",
      "links": [],
-     "slot_index": 4
+     "slot_index": 3
     },
     {
      "name": "before_mask",
      "type": "MASK",
      "links": [],
-     "slot_index": 5
+     "slot_index": 4
     },
     {
      "name": "after_mask",
      "type": "MASK",
+     "links": [],
+     "slot_index": 5
+    },
+    {
+     "name": "points",
+     "type": "STRING",
      "links": [],
      "slot_index": 6
     }
@@ -438,8 +436,7 @@
     "Node name for S&R": "SameFaceMeasure"
    },
    "widgets_values": [
-    true,
-    "similarity"
+    true
    ]
   },
   {
@@ -677,6 +674,84 @@
     "Node name for S&R": "PreviewImage"
    },
    "widgets_values": []
+  },
+  {
+   "id": 16,
+   "type": "SameFaceShiftMap",
+   "title": "Shift map",
+   "pos": [
+    420,
+    40
+   ],
+   "size": [
+    300,
+    110
+   ],
+   "flags": {},
+   "order": 2,
+   "mode": 0,
+   "inputs": [
+    {
+     "name": "drift",
+     "type": "SAMEFACE_DRIFT",
+     "link": 17
+    }
+   ],
+   "outputs": [
+    {
+     "name": "shift_map",
+     "type": "IMAGE",
+     "links": [
+      3
+     ],
+     "slot_index": 0
+    }
+   ],
+   "properties": {
+    "Node name for S&R": "SameFaceShiftMap"
+   },
+   "widgets_values": [
+    "similarity"
+   ]
+  },
+  {
+   "id": 17,
+   "type": "SameFaceShiftMap",
+   "title": "Shift map of the repair",
+   "pos": [
+    1260,
+    40
+   ],
+   "size": [
+    300,
+    110
+   ],
+   "flags": {},
+   "order": 8,
+   "mode": 0,
+   "inputs": [
+    {
+     "name": "drift",
+     "type": "SAMEFACE_DRIFT",
+     "link": 18
+    }
+   ],
+   "outputs": [
+    {
+     "name": "shift_map",
+     "type": "IMAGE",
+     "links": [
+      10
+     ],
+     "slot_index": 0
+    }
+   ],
+   "properties": {
+    "Node name for S&R": "SameFaceShiftMap"
+   },
+   "widgets_values": [
+    "similarity"
+   ]
   }
  ],
  "links": [
@@ -698,8 +773,8 @@
   ],
   [
    3,
-   3,
-   1,
+   16,
+   0,
    4,
    0,
    "IMAGE"
@@ -707,7 +782,7 @@
   [
    4,
    3,
-   2,
+   1,
    5,
    0,
    "STRING"
@@ -715,7 +790,7 @@
   [
    5,
    3,
-   5,
+   4,
    6,
    0,
    "MASK"
@@ -754,8 +829,8 @@
   ],
   [
    10,
-   9,
-   1,
+   17,
+   0,
    10,
    0,
    "IMAGE"
@@ -763,7 +838,7 @@
   [
    11,
    9,
-   2,
+   1,
    11,
    0,
    "STRING"
@@ -807,6 +882,22 @@
    15,
    0,
    "IMAGE"
+  ],
+  [
+   17,
+   3,
+   0,
+   16,
+   0,
+   "SAMEFACE_DRIFT"
+  ],
+  [
+   18,
+   9,
+   0,
+   17,
+   0,
+   "SAMEFACE_DRIFT"
   ]
  ],
  "groups": [],

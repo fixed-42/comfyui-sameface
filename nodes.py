@@ -1,14 +1,15 @@
-"""The ComfyUI nodes: SameFace Measure, Repair, View, Drift Histogram and
-Drift Zones.
+"""The ComfyUI nodes: SameFace Measure, Repair, Shift Map, View, Drift
+Histogram and Drift Zones.
 
 Measure takes a before and an after and says how far the edit moved the face,
-in figures and as a map. Repair takes what Measure found and moves the after's
+in figures; every picture of it is drawn by a node of its own from Measure's
+`drift`, and runs no models. Repair takes what Measure found and moves the after's
 features back. A repaired image is judged by measuring it again - the warp
 puts its own points where they belong by construction, so only a fresh
 measurement on the new pixels can say whether it helped. View draws the
 measured points on the before and the after, in one frame, for a slider.
-Drift Histogram and Drift Zones draw the measured points as a chart and as
-a grid over the face.
+Shift Map colours each point on the before by its drift; Drift Histogram and
+Drift Zones draw the points as a chart and as a grid over the face.
 
 Batches: one before with any number of afters, or as many befores as afters,
 paired in order.
@@ -89,15 +90,10 @@ class SameFaceMeasure(io.ComfyNode):
                 io.Boolean.Input(
                     "ears", default=True,
                     tooltip="Count the points on the ears as well as the face."),
-                io.Combo.Input(
-                    "map_fit", options=list(FITS), default="similarity",
-                    tooltip="Which fit's leftover the map shows. similarity takes out "
-                            "move, scale and turn; affine also takes out stretch and "
-                            "slant, so what it leaves is features moving against each other."),
             ],
             outputs=[
-                Drift.Output("drift", tooltip="Everything measured, for SameFace Repair."),
-                io.Image.Output("shift_map", tooltip="The before image with the drift drawn on it."),
+                Drift.Output("drift", tooltip="Everything measured: for Repair, and for "
+                                              "the nodes that draw it."),
                 io.String.Output("report", tooltip="The figures in words."),
                 io.Float.Output("similarity_median", tooltip="Median drift after a similarity fit, % of face size (first pair)."),
                 io.Float.Output("affine_median", tooltip="Median drift after an affine fit, % of face size (first pair)."),
@@ -113,7 +109,7 @@ class SameFaceMeasure(io.ComfyNode):
         )
 
     @classmethod
-    def execute(cls, before, after, ears, map_fit) -> io.NodeOutput:
+    def execute(cls, before, after, ears) -> io.NodeOutput:
         masker, flows = _models()
         drifts = []
         for first, second in _paired(_rgb(before), _rgb(after)):
@@ -126,7 +122,6 @@ class SameFaceMeasure(io.ComfyNode):
             for number, drift in enumerate(drifts, 1))
         return io.NodeOutput(
             drifts,
-            _image([drawing.shift_map(drift, map_fit, NOISE_FLOOR) for drift in drifts]),
             text,
             drifts[0].fits["similarity"].median,
             drifts[0].fits["affine"].median,
@@ -231,6 +226,36 @@ class SameFaceView(io.ComfyNode):
         return io.NodeOutput(_image(befores), _image(afters))
 
 
+class SameFaceShiftMap(io.ComfyNode):
+    @classmethod
+    def define_schema(cls):
+        return io.Schema(
+            node_id="SameFaceShiftMap",
+            display_name="SameFace Shift Map",
+            category="SameFace",
+            description=(
+                "The before image with every measured point coloured by how far the fit "
+                "left it: grey within the noise floor, then greens on a fixed scale, so a "
+                "colour is the same drift on every pair. Reads what Measure found; runs "
+                "no models."),
+            search_aliases=["drift map", "shift heatmap"],
+            inputs=[
+                Drift.Input("drift", tooltip="From SameFace Measure."),
+                io.Combo.Input(
+                    "fit", options=list(FITS), default="similarity",
+                    tooltip="Which fit's leftover the map shows. similarity takes out "
+                            "move, scale and turn; affine also takes out stretch and "
+                            "slant, so what it leaves is features moving against each other."),
+            ],
+            outputs=[io.Image.Output("shift_map")],
+        )
+
+    @classmethod
+    def execute(cls, drift, fit) -> io.NodeOutput:
+        return io.NodeOutput(_image(same_size([drawing.shift_map(each, fit, NOISE_FLOOR)
+                                               for each in drift])))
+
+
 class SameFaceHistogram(io.ComfyNode):
     @classmethod
     def define_schema(cls):
@@ -285,8 +310,8 @@ class SameFaceZones(io.ComfyNode):
 class SameFaceExtension(ComfyExtension):
     @override
     async def get_node_list(self) -> list[type[io.ComfyNode]]:
-        return [SameFaceMeasure, SameFaceRepair, SameFaceView, SameFaceHistogram,
-                SameFaceZones]
+        return [SameFaceMeasure, SameFaceRepair, SameFaceShiftMap, SameFaceView,
+                SameFaceHistogram, SameFaceZones]
 
 
 async def comfy_entrypoint() -> SameFaceExtension:
