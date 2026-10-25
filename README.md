@@ -148,13 +148,15 @@ The models download on first use (about 1.8 GB) into the Hugging Face and
 torch caches. All are open weights: Grounding DINO and SAM 2.1 under
 Apache-2.0, and RAFT (torchvision) under BSD-3-Clause.
 
-`example_workflows/` has a workflow that measures a pair, repairs it,
-measures the repair, and shows the points on a before/after slider. Load your own before and after into the two Load Image
-nodes.
+`example_workflows/` has two workflows, a restored 720p frame and a
+hair-and-background edit. Each measures a pair, repairs it, measures the
+repair, and shows the points on a before/after slider. Load your own before
+and after into the two Load Image nodes.
 
 ## Tests
 
-The geometry, the sampling and the warp are tested without a GPU:
+Everything but the models themselves is tested without a GPU - the masks,
+the sampling, the fits, the warp, the pictures and the noise floor's rule:
 
 ```
 python -m pytest
