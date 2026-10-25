@@ -45,6 +45,9 @@ measured as well as the face. Use it only when the edit left the hair alone:
 RAFT does not know hair from face, so hair the edit changed reads as drift.
 Hair is also low-texture and measures noisier than skin, and the noise floor
 was measured on faces, so a head's figures are not comparable with a face's.
+Repair from a face measurement: a head measurement would move the hair as
+well, and the hair edge with it. To see the head's figures, add a second
+Measure with head masks for reading only.
 
 **SameFace Shift Map**: `drift` + `fit` → `shift_map`
 
