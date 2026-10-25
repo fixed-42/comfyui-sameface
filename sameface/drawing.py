@@ -1,10 +1,12 @@
 """Pictures and words for a measurement: the shift map, the mask, the report.
 
 **The map's scale is fixed, never stretched to the image.** Grey within the
-noise floor, then five steps at 2, 5, 10 and 20 times the floor, so a colour
-is the same shift on every pair and the worst point of a perfect pair stays
-grey. One hue, green, light to dark; nearly opaque discs, because seen
-through, a photograph tints every step towards the same colour.
+noise floor, then a green for each step between the edges chosen on the node
+(by default 0.05, 0.1, 0.25, 0.5 and 1% of face size), so a colour is
+the same shift on every pair drawn with the same steps, and the worst point
+of a perfect pair stays grey. One hue, green, light to dark; nearly opaque
+discs, because seen through, a photograph tints every step towards the same
+colour.
 """
 import cv2
 import numpy as np
@@ -12,7 +14,12 @@ import numpy as np
 from .measure import dropped
 from .smooth_warp import spacing_of
 
-MAP_EDGES = (2, 5, 10, 20)
+# Edges between the colours, % of face size: one step just above the noise
+# floor, the rest over where real edits fall. Six greens is about as many as
+# one hue keeps apart; seven ran together.
+MAP_STEPS = (0.05, 0.1, 0.25, 0.5, 1.0)
+MAX_STEPS = 8
+# The ramp, light to dark; as many colours as the steps need are spread on it.
 MAP_COLOURS = ((0xc8, 0xef, 0xbf), (0x8f, 0xd6, 0x7c), (0x45, 0xad, 0x42),
                (0x1c, 0x7d, 0x2a), (0x08, 0x3f, 0x14))
 MAP_QUIET = (0xaa, 0xb0, 0xbd)
@@ -20,20 +27,49 @@ QUIET_ALPHA, STEP_ALPHA = 0.3, 0.95
 OUTLINE = (255, 255, 255)
 
 
-def map_step(percent, floor):
+def parse_steps(text, floor):
+    """The edges typed on a node, "0.1, 0.25, 0.5, 1", as floats - refused
+    with the reason when they would draw a misleading map."""
+    try:
+        steps = tuple(float(part) for part in str(text).replace(";", ",").split(",")
+                      if part.strip())
+    except ValueError:
+        raise ValueError(f"steps {text!r}: give numbers, % of face size, separated by "
+                         "commas, such as 0.1, 0.25, 0.5, 1") from None
+    if not 1 <= len(steps) <= MAX_STEPS:
+        raise ValueError(f"steps {text!r}: give 1 to {MAX_STEPS} of them")
+    if any(low >= high for low, high in zip(steps, steps[1:])):
+        raise ValueError(f"steps {text!r}: each must be larger than the one before")
+    if steps[0] <= floor:
+        raise ValueError(f"steps {text!r}: the first must be above the noise floor, "
+                         f"{floor:g}% - below it everything is grey anyway")
+    return steps
+
+
+def map_colours(count):
+    """`count` colours spread light to dark along `MAP_COLOURS`."""
+    ramp = np.asarray(MAP_COLOURS, float)
+    at = np.linspace(0, len(ramp) - 1, count) if count > 1 else np.array([len(ramp) // 2])
+    low = np.minimum(np.floor(at).astype(int), len(ramp) - 2)
+    share = (at - low)[:, None]
+    return [tuple(int(round(v)) for v in colour)
+            for colour in ramp[low] * (1 - share) + ramp[low + 1] * share]
+
+
+def map_step(percent, floor, steps=MAP_STEPS):
     """Which colour a shift takes, or -1 where it is within the noise floor."""
     if percent <= floor:
         return -1
-    return sum(percent > edge * floor for edge in MAP_EDGES)
+    return sum(percent > edge for edge in steps)
 
 
-def map_legend(floor):
-    def at(multiple):
-        return f"{multiple * floor:.3g}%"
-    edges = (1, *MAP_EDGES)
-    return ([f"up to {at(1)}"]
+def map_legend(floor, steps=MAP_STEPS):
+    def at(value):
+        return f"{value:.3g}%"
+    edges = (floor, *steps)
+    return ([f"up to {at(floor)}"]
             + [f"{at(low)} - {at(high)}" for low, high in zip(edges, edges[1:])]
-            + [f"over {at(MAP_EDGES[-1])}"])
+            + [f"over {at(steps[-1])}"])
 
 
 def _blend(canvas, layer, mask, alpha):
@@ -41,20 +77,22 @@ def _blend(canvas, layer, mask, alpha):
     canvas[where] = canvas[where] * (1 - alpha) + layer[where] * alpha
 
 
-def shift_map(drift, mode, floor):
+def shift_map(drift, mode, floor, steps=MAP_STEPS):
     """Each point as a disc on the before image, coloured by how much shift
-    the `mode` fit left on it. RGB uint8, the before image's size."""
+    the `mode` fit left on it, in the colour of its step between `steps`.
+    RGB uint8, the before image's size."""
     image = drift.before.astype(float)
     points = drift.before_points
     each = drift.fits[mode].residuals
     radius = max(1, int(round(spacing_of(points) / 2)))
-    steps = np.array([map_step(value, floor) for value in each])
+    colours = map_colours(len(steps) + 1)
+    taken = np.array([map_step(value, floor, steps) for value in each])
 
     for wanted, colour, alpha in ([(-1, MAP_QUIET, QUIET_ALPHA)]
-                                  + [(step, MAP_COLOURS[step], STEP_ALPHA)
-                                     for step in range(len(MAP_COLOURS))]):
+                                  + [(step, colours[step], STEP_ALPHA)
+                                     for step in range(len(colours))]):
         mask = np.zeros(image.shape[:2], np.uint8)
-        for x, y in points[steps == wanted]:
+        for x, y in points[taken == wanted]:
             cv2.circle(mask, (int(round(x)), int(round(y))), radius, 1, -1, cv2.LINE_AA)
         layer = np.empty_like(image)
         layer[...] = colour
@@ -66,18 +104,18 @@ def shift_map(drift, mode, floor):
     thickness = max(1, int(round(2 * scale)))
     cv2.polylines(image, [np.round(drift.before_region.outline).astype(np.int32)],
                   True, OUTLINE, thickness, cv2.LINE_AA)
-    _legend(image, mode, floor, scale)
+    _legend(image, mode, floor, steps, scale)
     return image
 
 
-def _legend(image, mode, floor, scale):
+def _legend(image, mode, floor, steps, scale):
     """The steps' words in a box at the bottom left."""
     font, size = cv2.FONT_HERSHEY_SIMPLEX, 0.55 * max(scale, 0.5)
     weight = max(1, int(round(size * 2)))
     line = int(round(26 * max(scale, 0.5)))
     swatch = int(round(line * 0.7))
     rows = [(None, f"shift left by the {mode} fit")] + list(
-        zip([MAP_QUIET, *MAP_COLOURS], map_legend(floor)))
+        zip([MAP_QUIET, *map_colours(len(steps) + 1)], map_legend(floor, steps)))
     width = max(cv2.getTextSize(text, font, size, weight)[0][0] for _, text in rows)
     width += swatch + 3 * line // 2
     height = line * len(rows) + line // 2

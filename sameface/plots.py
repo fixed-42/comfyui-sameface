@@ -11,7 +11,7 @@ colour means the same drift on both pictures and on every pair.
 import cv2
 import numpy as np
 
-from .drawing import MAP_COLOURS, MAP_QUIET, OUTLINE, map_step
+from .drawing import MAP_COLOURS, MAP_QUIET, MAP_STEPS, OUTLINE, map_colours, map_step
 from .geometry import FITS, apply
 from .measure import chosen_parts
 
@@ -168,10 +168,12 @@ def drift_histogram(drift, floor, size=(1200, 600), bins=40):
     return image
 
 
-def drift_zones(drift, mode, floor, rows=4, cols=3, min_points=MIN_POINTS):
+def drift_zones(drift, mode, floor, rows=4, cols=3, min_points=MIN_POINTS, steps=MAP_STEPS):
     """The before face, cut into a `rows` x `cols` grid over its measured
-    points, each cell tinted by its median drift after the `mode` fit and the
-    figure printed in it. RGB uint8, `ZONES_HEIGHT` tall."""
+    points, each cell tinted by its median drift after the `mode` fit, in the
+    shift map's colour for its step, and the figure printed in it. RGB uint8,
+    `ZONES_HEIGHT` tall."""
+    colours = map_colours(len(steps) + 1)
     points = drift.before_points
     medians = zone_medians(points, drift.fits[mode].residuals, rows, cols, min_points)
     low, high = points.min(axis=0), points.max(axis=0)
@@ -198,8 +200,8 @@ def drift_zones(drift, mode, floor, rows=4, cols=3, min_points=MIN_POINTS):
             far = at(low[0] + (c + 1) * cell_w, low[1] + (r + 1) * cell_h)
             corners[r, c] = corner, far
             if not np.isnan(medians[r, c]):
-                step = map_step(medians[r, c], floor)
-                cv2.rectangle(layer, corner, far, MAP_QUIET if step < 0 else MAP_COLOURS[step], -1)
+                step = map_step(medians[r, c], floor, steps)
+                cv2.rectangle(layer, corner, far, MAP_QUIET if step < 0 else colours[step], -1)
     image = cv2.addWeighted(layer, CELL_ALPHA, image, 1 - CELL_ALPHA, 0)
 
     outline = np.array([at(x, y) for x, y in drift.before_region.outline], np.int32)

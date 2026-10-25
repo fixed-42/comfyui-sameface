@@ -80,3 +80,47 @@ def test_same_size_pads_to_the_largest():
     small, large = np.zeros((10, 20, 3), np.uint8), np.zeros((30, 15, 3), np.uint8)
     padded = same_size([small, large])
     assert [image.shape for image in padded] == [(30, 20, 3), (30, 20, 3)]
+
+
+# ---------- the colour steps, chosen on the node ----------
+
+
+def test_steps_are_read_from_what_was_typed():
+    from sameface.drawing import parse_steps
+    assert parse_steps("0.1, 0.25, 0.5, 1", 0.01) == (0.1, 0.25, 0.5, 1.0)
+    assert parse_steps("0.02;0.05", 0.01) == (0.02, 0.05)
+
+
+@pytest.mark.parametrize("typed, reason", [
+    ("0.1, a lot", "give numbers"),
+    ("", "1 to 8"),
+    ("0.1, 0.05", "larger than the one before"),
+    ("0.1, 0.1", "larger than the one before"),
+    ("0.005, 0.1", "above the noise floor"),
+    (", ".join(["0.1"] * 9), "1 to 8"),
+])
+def test_steps_that_would_mislead_are_refused_with_the_reason(typed, reason):
+    from sameface.drawing import parse_steps
+    with pytest.raises(ValueError, match=reason):
+        parse_steps(typed, 0.01)
+
+
+def test_a_point_takes_the_colour_of_its_step():
+    from sameface.drawing import map_step
+    steps = (0.1, 0.5)
+    assert [map_step(value, 0.01, steps) for value in (0.005, 0.05, 0.3, 0.9)] == [-1, 0, 1, 2]
+
+
+def test_the_colours_run_light_to_dark_whatever_their_number():
+    from sameface.drawing import MAP_COLOURS, map_colours
+    assert map_colours(len(MAP_COLOURS)) == [tuple(c) for c in MAP_COLOURS]
+    for count in (2, 3, 7, 9):
+        colours = map_colours(count)
+        lightness = [sum(c) for c in colours]
+        assert len(colours) == count and lightness == sorted(lightness, reverse=True)
+
+
+def test_the_legend_names_each_step():
+    from sameface.drawing import map_legend
+    assert map_legend(0.01, (0.1, 0.5)) == ["up to 0.01%", "0.01% - 0.1%", "0.1% - 0.5%",
+                                           "over 0.5%"]

@@ -49,10 +49,12 @@ Repair from a face measurement: a head measurement would move the hair as
 well, and the hair edge with it. To see the head's figures, add a second
 Measure with head masks for reading only.
 
-**SameFace Shift Map**: `drift` + `fit` → `shift_map`
+**SameFace Shift Map**: `drift` + `fit`, `steps` → `shift_map`
 
 The before image with every measured point coloured by how far the fit left
-it.
+it: grey within the noise floor, then a darker green at each of `steps`, in %
+of face size. The default, `0.05, 0.1, 0.25, 0.5, 1`, gives six greens, which
+suits most edits; give 1 to 8 steps of your own, smallest first.
 
 **SameFace Repair**: `drift` + `strength`, `framing` → `repaired`, `covered`
 
@@ -79,7 +81,7 @@ not vouch for (see below).
 How many points drifted how far: bars for the similarity fit, an outline for
 the affine fit, each median marked, and the noise floor dashed.
 
-**SameFace Drift Zones**: `drift` + `fit`, `rows`, `cols` → `zones`
+**SameFace Drift Zones**: `drift` + `fit`, `rows`, `cols`, `steps` → `zones`
 
 The before face cut into a grid (4 × 3 by default), each cell tinted by the
 median drift of its points, in the shift map's colours, with the figure
@@ -126,9 +128,8 @@ The noise floor is **0.01% of face size**: below it, a shift cannot be told
 from the measurement's own noise. It comes from null pairs, each face resampled
 to 512 and 1414 pixels and saved as a JPEG, so the true drift is zero: twice
 their median drift (0.0033% over 25 faces), rounded up to a 1-2-5 step. On the
-shift map, grey is within that floor; the greens step up at 2, 5, 10 and 20
-times it. To measure it on your own faces, with ComfyUI's Python, from this
-folder:
+shift map, grey is within that floor. To measure it on your own faces, with
+ComfyUI's Python, from this folder:
 
     python tools/calibrate_noise_floor.py <folder of face images>
 

@@ -29,6 +29,7 @@ import comfy.model_management
 from comfy_api.latest import ComfyExtension, io
 
 from .sameface import drawing
+from .sameface.drawing import MAP_STEPS, parse_steps
 from .sameface.geometry import FITS
 from .sameface.mask_shapes import ORDERS, REGIONS
 from .sameface.measure import FRAMINGS, NOISE_FLOOR, measure, repair, repair_frame
@@ -38,6 +39,16 @@ from .sameface.regions import masks_for, region_from_mask
 from .sameface.views import EXAGGERATIONS, views
 
 Drift = io.Custom("SAMEFACE_DRIFT")
+STEPS_TEXT = ", ".join(f"{step:g}" for step in MAP_STEPS)
+
+
+def _steps_input():
+    return io.String.Input(
+        "steps", default=STEPS_TEXT,
+        tooltip="Where the colours change, in % of face size, smallest first, "
+                "separated by commas (1 to 8 of them). Within the noise floor is grey; "
+                "each step after it a darker green. 0.1, 0.25, 0.5, 1 gives a coarser "
+                "map for large drift.")
 
 
 @lru_cache(maxsize=1)
@@ -330,9 +341,9 @@ class SameFaceShiftMap(io.ComfyNode):
             category="SameFace",
             description=(
                 "The before image with every measured point coloured by how far the fit "
-                "left it: grey within the noise floor, then greens on a fixed scale, so a "
-                "colour is the same drift on every pair. Reads what Measure found; runs "
-                "no models."),
+                "left it: grey within the noise floor, then a darker green for each step "
+                "you set, so a colour is the same drift on every pair. Reads what Measure "
+                "found; runs no models."),
             search_aliases=["drift map", "shift heatmap"],
             inputs=[
                 Drift.Input("drift", tooltip="From SameFace Measure."),
@@ -341,13 +352,15 @@ class SameFaceShiftMap(io.ComfyNode):
                     tooltip="Which fit's leftover the map shows. similarity takes out "
                             "move, scale and turn; affine also takes out stretch and "
                             "slant, so what it leaves is features moving against each other."),
+                _steps_input(),
             ],
             outputs=[io.Image.Output("shift_map")],
         )
 
     @classmethod
-    def execute(cls, drift, fit) -> io.NodeOutput:
-        return io.NodeOutput(_image(same_size([drawing.shift_map(each, fit, NOISE_FLOOR)
+    def execute(cls, drift, fit, steps=STEPS_TEXT) -> io.NodeOutput:
+        steps = parse_steps(steps, NOISE_FLOOR)
+        return io.NodeOutput(_image(same_size([drawing.shift_map(each, fit, NOISE_FLOOR, steps)
                                                for each in drift])))
 
 
@@ -392,13 +405,16 @@ class SameFaceZones(io.ComfyNode):
                                tooltip="Whose leftover drift the cells show."),
                 io.Int.Input("rows", default=4, min=1, max=12),
                 io.Int.Input("cols", default=3, min=1, max=12),
+                _steps_input(),
             ],
             outputs=[io.Image.Output("zones")],
         )
 
     @classmethod
-    def execute(cls, drift, fit, rows, cols) -> io.NodeOutput:
-        return io.NodeOutput(_image(same_size([drift_zones(each, fit, NOISE_FLOOR, rows, cols)
+    def execute(cls, drift, fit, rows, cols, steps=STEPS_TEXT) -> io.NodeOutput:
+        steps = parse_steps(steps, NOISE_FLOOR)
+        return io.NodeOutput(_image(same_size([drift_zones(each, fit, NOISE_FLOOR, rows, cols,
+                                                           steps=steps)
                                                for each in drift])))
 
 
