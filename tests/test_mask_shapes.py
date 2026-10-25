@@ -9,7 +9,7 @@ so each test knows its answer.
 import numpy as np
 import pytest
 
-from sameface.mask_shapes import ears_beside, join, outline, parts, pick_face
+from sameface.mask_shapes import ears_beside, face_in, join, outline, parts, pick_face
 
 FACE = [100.0, 100.0, 300.0, 400.0]      # 200 wide, 300 tall
 
@@ -42,6 +42,24 @@ def test_left_to_right_counts_from_the_left_edge():
 def test_a_face_past_the_last_is_an_error_that_says_how_many_there_are():
     with pytest.raises(ValueError, match="4 faces found"):
         pick_face(FAMILY, "left to right", 4)
+
+
+def test_heads_are_counted_the_same_way_and_named_in_the_error():
+    assert pick_face(FAMILY, "left to right", 2, "head") == MOTHER
+    with pytest.raises(ValueError, match="head 4 asked for, but 4 heads found"):
+        pick_face(FAMILY, "left to right", 4, "head")
+
+
+def test_a_heads_face_is_the_one_inside_it():
+    """SAM 2 asked for a head outlines the hair; the face is joined from the
+    face box inside the head box - not a neighbour's."""
+    mothers_head = box(431, 330, 200, 210)
+
+    assert face_in(mothers_head, FAMILY) == MOTHER
+
+
+def test_a_head_with_no_face_inside_has_none():
+    assert face_in(box(431, 700, 100, 60), FAMILY) is None
 
 
 def test_no_face_is_an_error():

@@ -30,7 +30,7 @@ from comfy_api.latest import ComfyExtension, io
 
 from .sameface import drawing
 from .sameface.geometry import FITS
-from .sameface.mask_shapes import ORDERS
+from .sameface.mask_shapes import ORDERS, REGIONS
 from .sameface.measure import FRAMINGS, NOISE_FLOOR, measure, repair, repair_frame
 from .sameface.models import FaceMasker, Flow
 from .sameface.plots import drift_histogram, drift_zones, point_table, same_size
@@ -175,12 +175,21 @@ class SameFaceFaceMask(io.ComfyNode):
             display_name="SameFace Face Mask",
             category="SameFace",
             description=(
-                "One person's face mask, for Measure's before_mask or after_mask when "
-                "there is more than one face: the faces are counted in the order chosen, "
-                "and the one at index is masked (Grounded SAM 2, as Measure does)."),
-            search_aliases=["choose face", "which face", "multiple faces", "face select"],
+                "One person's face or head mask, for Measure's before_mask or after_mask: "
+                "the faces are counted in the order chosen, and the one at index is "
+                "masked (Grounded SAM 2, as Measure does). A head mask takes the hair "
+                "in, so its shape is measured too - for an edit that left the hair alone."),
+            search_aliases=["choose face", "which face", "multiple faces", "face select",
+                            "head mask"],
             inputs=[
                 io.Image.Input("image", tooltip="The image, or a batch of them."),
+                io.Combo.Input(
+                    "region", options=list(REGIONS), default="face",
+                    tooltip="The face (and its ears), or the whole head, hair included. "
+                            "Measure the head only when the edit left the hair alone: "
+                            "hair the edit changed reads as drift. Hair also measures "
+                            "noisier than skin, and the noise floor in the report was "
+                            "measured on faces."),
                 io.Combo.Input(
                     "order", options=list(ORDERS), default="left to right",
                     tooltip="How the faces are counted: left to right by the middle of "
@@ -193,22 +202,24 @@ class SameFaceFaceMask(io.ComfyNode):
                             "people around, the index may differ."),
                 io.Boolean.Input(
                     "ears", default=True,
-                    tooltip="Join the face's ears to its mask."),
+                    tooltip="Join the face's ears to its mask. A head has its ears "
+                            "already, so this does nothing there."),
             ],
             outputs=[
-                io.Mask.Output("mask", tooltip="The chosen face's mask, one per image."),
-                io.Int.Output("faces_found", tooltip="How many faces the detector saw "
-                                                     "(first image)."),
+                io.Mask.Output("mask", tooltip="The chosen face's or head's mask, one "
+                                               "per image."),
+                io.Int.Output("faces_found", tooltip="How many faces (or heads) the "
+                                                     "detector saw (first image)."),
             ],
         )
 
     @classmethod
-    def execute(cls, image, order, index, ears) -> io.NodeOutput:
+    def execute(cls, image, region, order, index, ears) -> io.NodeOutput:
         masker, _ = _models()
         regions = []
         for rgb in _rgb(image):
             comfy.model_management.throw_exception_if_processing_interrupted()
-            regions.append(masker(rgb, order=order, index=index, ears=ears))
+            regions.append(masker(rgb, order=order, index=index, ears=ears, region=region))
         return io.NodeOutput(_mask([region.mask for region in regions]),
                              regions[0].faces_found)
 

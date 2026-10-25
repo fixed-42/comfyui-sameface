@@ -30,7 +30,7 @@ or give one per image; a mask must be its image's size. A box-shaped mask (a
 detector's bounding box) is measured, and the report warns that hair and
 background inside it count as face.
 
-**SameFace Face Mask**: `image` + `order`, `index`, `ears` → `mask`, `faces_found`
+**SameFace Face Mask**: `image` + `region`, `order`, `index`, `ears` → `mask`, `faces_found`
 
 One person's face when there are several: the faces are counted `left to
 right` (by the middle of each face) or `surest` first, and the one at `index`,
@@ -39,6 +39,12 @@ from 0, is masked. Wire one into each of Measure's `before_mask` and
 default because it stays put when two faces score nearly the same, which
 `surest` does not; if the edit moved people around, the index can differ
 between the sides. `faces_found` says how many there were.
+
+`region` `head` masks the whole head, hair included, so the head's shape is
+measured as well as the face. Use it only when the edit left the hair alone:
+RAFT does not know hair from face, so hair the edit changed reads as drift.
+Hair is also low-texture and measures noisier than skin, and the noise floor
+was measured on faces, so a head's figures are not comparable with a face's.
 
 **SameFace Shift Map**: `drift` + `fit` → `shift_map`
 
@@ -87,8 +93,9 @@ Batches: one before with any number of afters, or as many befores as afters.
 ## How it measures
 
 1. **Face mask**: Grounding DINO finds the face and the ears from the words
-   "face" and "ear"; SAM 2 outlines them. Ears in, neck out. Or the mask you
-   wire in.
+   "face" and "ear"; SAM 2 outlines them. Ears in, neck out. For a head, SAM 2
+   outlines the hair in a "head" box and the face inside it is joined on. Or
+   the mask you wire in.
 2. **Optical flow**: each side is cropped to its own face and resampled to one
    working size, so a resize or a reframing is not mistaken for drift. RAFT then
    follows every pixel of the before face into the after, forwards and

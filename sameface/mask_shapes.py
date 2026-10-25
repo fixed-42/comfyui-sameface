@@ -21,6 +21,9 @@ MAX_EARS = 2
 # "surest" is the detector's own confidence; "left to right" goes by the
 # middle of each box, and is the one that stays put when two scores are close.
 ORDERS = ("surest", "left to right")
+# What is masked: the face (and its ears), or the whole head, hair included -
+# for an edit that left the hair alone, so the head's shape is measured too.
+REGIONS = ("face", "head")
 
 # How far apart an ear and the face may be and still be joined, as a share of
 # the face mask's diagonal. Two masks cut separately seldom meet exactly;
@@ -31,8 +34,9 @@ JOIN_REACH = 0.04
 EPSILON_FRAC = 0.0015
 
 
-def pick_face(faces, order="surest", index=0):
-    """The `(box, score)` at `index` among `faces`, counted in `order`."""
+def pick_face(faces, order="surest", index=0, what="face"):
+    """The `(box, score)` at `index` among `faces`, counted in `order`.
+    `what` names them in an error: a face, or a head."""
     if order == "surest":
         ranked = sorted(faces, key=lambda face: -face[1])
     elif order == "left to right":
@@ -40,11 +44,26 @@ def pick_face(faces, order="surest", index=0):
     else:
         raise ValueError(f"unknown face order {order!r}: one of {', '.join(ORDERS)}")
     if not ranked:
-        raise ValueError("no face found in the image")
+        raise ValueError(f"no {what} found in the image")
     if not 0 <= index < len(ranked):
-        raise ValueError(f"face {index} asked for, but {len(ranked)} faces found "
+        raise ValueError(f"{what} {index} asked for, but {len(ranked)} {what}s found "
                          f"(0 to {len(ranked) - 1}, {order})")
     return ranked[index]
+
+
+def face_in(head_box, faces):
+    """The `(box, score)` among `faces` most inside `head_box`, or None.
+
+    Asked for a head, SAM 2 outlines the hair and leaves the face out, so a
+    head mask is the hair joined to this face's own mask.
+    """
+    def inside(face):
+        x0, y0, x1, y1 = face[0]
+        width = max(0.0, min(x1, head_box[2]) - max(x0, head_box[0]))
+        height = max(0.0, min(y1, head_box[3]) - max(y0, head_box[1]))
+        return width * height / max((x1 - x0) * (y1 - y0), 1e-9)
+    best = max(faces, key=inside, default=None)
+    return best if best is not None and inside(best) > 0.5 else None
 
 
 def ears_beside(face_box, found):

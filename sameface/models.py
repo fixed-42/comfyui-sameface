@@ -1,7 +1,7 @@
 """The three models, loaded once and moved to the GPU only while in use.
 
 - **Grounding DINO** finds the face, and the ears, from the words "face" and
-  "ear".
+  "ear" - or the head, from "head".
 - **SAM 2** turns each box into a mask; the ears are joined to the face.
   Ears in, neck out - the neck is out simply because nobody asked for it.
 - **RAFT** measures where every pixel of the before face went in the after.
@@ -16,7 +16,7 @@ import numpy as np
 import torch
 from PIL import Image
 
-from .mask_shapes import ears_beside, join, outline, parts, pick_face
+from .mask_shapes import REGIONS, ears_beside, face_in, join, outline, parts, pick_face
 from .measure import Region
 
 # Pinned to commits, not to `main`: the weights decide the outline, and a
@@ -30,6 +30,9 @@ SEGMENTER_REVISION = "665f8e2ad61cf5f53d65644ff27c8ee525124610"
 # Asked separately: together, the detector splits its confidence between them.
 FACE_PROMPT = "face."
 EAR_PROMPT = "ear."
+# The whole head, hair included. "hair." alone is no use: on some images its
+# box is the whole picture.
+HEAD_PROMPT = "head."
 # Low on purpose. A missed ear is a mask silently ears-out; a spurious "ear"
 # is filtered by `ears_beside` and, failing that, by not touching the face.
 BOX_THRESHOLD = 0.25
@@ -122,9 +125,14 @@ class FaceMasker(_OnDemand):
             outputs.pred_masks.cpu(), inputs["original_sizes"])[0]
         return (masks[0, 0].numpy() > 0).astype(np.uint8)
 
-    def __call__(self, rgb, order="surest", index=0, ears=True):
+    def __call__(self, rgb, order="surest", index=0, ears=True, region="face"):
         """The face at `index` in `order` (`mask_shapes.ORDERS`), with its
-        ears joined unless `ears` is False."""
+        ears joined unless `ears` is False - or, with `region="head"`, the
+        head at `index`, which takes the ears in with it."""
+        if region not in REGIONS:
+            raise ValueError(f"unknown region {region!r}: one of {', '.join(REGIONS)}")
+        if region == "head":
+            return self._head(rgb, order, index)
         with self:
             pil = Image.fromarray(rgb)
             faces = self.detect(pil, FACE_PROMPT)
@@ -137,6 +145,23 @@ class FaceMasker(_OnDemand):
                       parts=parts(face_mask, ear_masks, mask),
                       face_score=score, faces_found=len(faces),
                       ears_found=len(ears), ears_joined=int(sum(kept)))
+
+
+    def _head(self, rgb, order, index):
+        """The head at `index`: SAM 2 asked for a head box outlines the hair,
+        so the face inside that box is segmented too and the two joined."""
+        with self:
+            pil = Image.fromarray(rgb)
+            heads = self.detect(pil, HEAD_PROMPT)
+            box, score = pick_face(heads, order, index, "head")
+            face = face_in(box, self.detect(pil, FACE_PROMPT))
+            if face is None:
+                raise ValueError(f"head {index} ({order}) has no face inside it")
+            hair = self.segment(rgb, box)
+            face_mask = self.segment(rgb, face[0])
+        mask, _ = join(hair | face_mask, [])
+        return Region(mask=mask, outline=outline(mask), parts=parts(mask, [], mask),
+                      face_score=score, faces_found=len(heads))
 
 
 class Flow(_OnDemand):
