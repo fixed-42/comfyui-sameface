@@ -1,1023 +1,1015 @@
 {
- "last_node_id": 19,
- "last_link_id": 21,
- "nodes": [
-  {
-   "id": 1,
-   "type": "LoadImage",
-   "title": "Before",
-   "pos": [
-    40,
-    60
-   ],
-   "size": [
-    320,
-    380
-   ],
-   "flags": {},
-   "order": 0,
-   "mode": 0,
-   "inputs": [],
-   "outputs": [
+  "last_node_id": 3379168533948518,
+  "last_link_id": 21,
+  "nodes": [
     {
-     "name": "IMAGE",
-     "type": "IMAGE",
-     "links": [
+      "id": 1,
+      "type": "LoadImage",
+      "title": "Before",
+      "pos": [
+        40,
+        60
+      ],
+      "size": [
+        320,
+        380
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            1,
+            8
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": [],
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoadImage"
+      },
+      "widgets_values": [
+        "sameface_720p_before.png",
+        "image"
+      ]
+    },
+    {
+      "id": 2,
+      "type": "LoadImage",
+      "title": "After (edited)",
+      "pos": [
+        40,
+        480
+      ],
+      "size": [
+        320,
+        380
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            2
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": [],
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoadImage"
+      },
+      "widgets_values": [
+        "sameface_720p_after.png",
+        "image"
+      ]
+    },
+    {
+      "id": 3,
+      "type": "SameFaceMeasure",
+      "title": "Measure",
+      "pos": [
+        420,
+        200
+      ],
+      "size": [
+        300,
+        220
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "before",
+          "type": "IMAGE",
+          "link": 1
+        },
+        {
+          "name": "after",
+          "type": "IMAGE",
+          "link": 2
+        }
+      ],
+      "outputs": [
+        {
+          "name": "drift",
+          "type": "SAMEFACE_DRIFT",
+          "links": [
+            6,
+            12,
+            17
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "report",
+          "type": "STRING",
+          "links": [
+            4
+          ],
+          "slot_index": 1
+        },
+        {
+          "name": "similarity_median",
+          "type": "FLOAT",
+          "links": [],
+          "slot_index": 2
+        },
+        {
+          "name": "affine_median",
+          "type": "FLOAT",
+          "links": [],
+          "slot_index": 3
+        },
+        {
+          "name": "before_mask",
+          "type": "MASK",
+          "links": [
+            5
+          ],
+          "slot_index": 4
+        },
+        {
+          "name": "after_mask",
+          "type": "MASK",
+          "links": [],
+          "slot_index": 5
+        },
+        {
+          "name": "points",
+          "type": "STRING",
+          "links": [],
+          "slot_index": 6
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "SameFaceMeasure"
+      },
+      "widgets_values": [
+        true
+      ]
+    },
+    {
+      "id": 4,
+      "type": "PreviewImage",
+      "title": "Shift map",
+      "pos": [
+        780,
+        40
+      ],
+      "size": [
+        420,
+        420
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 3
+        }
+      ],
+      "outputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "links": [],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PreviewImage"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 5,
+      "type": "PreviewAny",
+      "title": "Report",
+      "pos": [
+        780,
+        500
+      ],
+      "size": [
+        420,
+        260
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "source",
+          "type": "*",
+          "link": 4
+        }
+      ],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": [],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PreviewAny"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 6,
+      "type": "MaskPreview",
+      "title": "Before face mask",
+      "pos": [
+        420,
+        480
+      ],
+      "size": [
+        300,
+        300
+      ],
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "mask",
+          "type": "MASK",
+          "link": 5
+        }
+      ],
+      "outputs": [
+        {
+          "name": "mask",
+          "type": "MASK",
+          "links": [],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "MaskPreview"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 7,
+      "type": "SameFaceRepair",
+      "title": "Repair",
+      "pos": [
+        780,
+        800
+      ],
+      "size": [
+        300,
+        110
+      ],
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "drift",
+          "type": "SAMEFACE_DRIFT",
+          "link": 6
+        }
+      ],
+      "outputs": [
+        {
+          "name": "repaired",
+          "type": "IMAGE",
+          "links": [
+            7,
+            9
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "covered",
+          "type": "MASK",
+          "links": [],
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "SameFaceRepair"
+      },
+      "widgets_values": [
+        1.0,
+        "after"
+      ]
+    },
+    {
+      "id": 8,
+      "type": "SaveImage",
+      "title": "Repaired",
+      "pos": [
+        1140,
+        800
+      ],
+      "size": [
+        380,
+        420
+      ],
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 7
+        }
+      ],
+      "outputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "links": [],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "SaveImage"
+      },
+      "widgets_values": [
+        "sameface/repaired"
+      ]
+    },
+    {
+      "id": 9,
+      "type": "SameFaceMeasure",
+      "title": "Measure the repair",
+      "pos": [
+        1260,
+        200
+      ],
+      "size": [
+        300,
+        220
+      ],
+      "flags": {},
+      "order": 8,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "before",
+          "type": "IMAGE",
+          "link": 8
+        },
+        {
+          "name": "after",
+          "type": "IMAGE",
+          "link": 9
+        }
+      ],
+      "outputs": [
+        {
+          "name": "drift",
+          "type": "SAMEFACE_DRIFT",
+          "links": [
+            18,
+            19
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "report",
+          "type": "STRING",
+          "links": [
+            11
+          ],
+          "slot_index": 1
+        },
+        {
+          "name": "similarity_median",
+          "type": "FLOAT",
+          "links": [],
+          "slot_index": 2
+        },
+        {
+          "name": "affine_median",
+          "type": "FLOAT",
+          "links": [],
+          "slot_index": 3
+        },
+        {
+          "name": "before_mask",
+          "type": "MASK",
+          "links": [],
+          "slot_index": 4
+        },
+        {
+          "name": "after_mask",
+          "type": "MASK",
+          "links": [],
+          "slot_index": 5
+        },
+        {
+          "name": "points",
+          "type": "STRING",
+          "links": [],
+          "slot_index": 6
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "SameFaceMeasure"
+      },
+      "widgets_values": [
+        true
+      ]
+    },
+    {
+      "id": 10,
+      "type": "PreviewImage",
+      "title": "Shift map after repair",
+      "pos": [
+        1600,
+        40
+      ],
+      "size": [
+        420,
+        420
+      ],
+      "flags": {},
+      "order": 9,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 10
+        }
+      ],
+      "outputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "links": [],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PreviewImage"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 11,
+      "type": "PreviewAny",
+      "title": "Report after repair",
+      "pos": [
+        1600,
+        500
+      ],
+      "size": [
+        420,
+        260
+      ],
+      "flags": {},
+      "order": 10,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "source",
+          "type": "*",
+          "link": 11
+        }
+      ],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": [],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PreviewAny"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 12,
+      "type": "SameFaceView",
+      "title": "View: points and mesh",
+      "pos": [
+        40,
+        1300
+      ],
+      "size": [
+        320,
+        260
+      ],
+      "flags": {},
+      "order": 11,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "drift",
+          "type": "SAMEFACE_DRIFT",
+          "link": 12
+        }
+      ],
+      "outputs": [
+        {
+          "name": "before_view",
+          "type": "IMAGE",
+          "links": [
+            13,
+            15
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "after_view",
+          "type": "IMAGE",
+          "links": [
+            14,
+            16
+          ],
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "SameFaceView"
+      },
+      "widgets_values": [
+        "similarity",
+        true,
+        true,
+        "5",
+        true
+      ]
+    },
+    {
+      "id": 13,
+      "type": "ImageCompare",
+      "title": "Slider: before / after",
+      "pos": [
+        420,
+        1300
+      ],
+      "size": [
+        640,
+        700
+      ],
+      "flags": {},
+      "order": 12,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "compare_view",
+          "type": "IMAGECOMPARE",
+          "widget": {
+            "name": "compare_view"
+          },
+          "link": null
+        },
+        {
+          "name": "image_a",
+          "type": "IMAGE",
+          "link": 13
+        },
+        {
+          "name": "image_b",
+          "type": "IMAGE",
+          "link": 14
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "ImageCompare"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 14,
+      "type": "PreviewImage",
+      "title": "Before with points",
+      "pos": [
+        1100,
+        1300
+      ],
+      "size": [
+        440,
+        460
+      ],
+      "flags": {},
+      "order": 13,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 15
+        }
+      ],
+      "outputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "links": [],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PreviewImage"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 15,
+      "type": "PreviewImage",
+      "title": "After with points",
+      "pos": [
+        1580,
+        1300
+      ],
+      "size": [
+        440,
+        460
+      ],
+      "flags": {},
+      "order": 14,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 16
+        }
+      ],
+      "outputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "links": [],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PreviewImage"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 16,
+      "type": "SameFaceShiftMap",
+      "title": "Shift map",
+      "pos": [
+        420,
+        40
+      ],
+      "size": [
+        300,
+        110
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "drift",
+          "type": "SAMEFACE_DRIFT",
+          "link": 17
+        }
+      ],
+      "outputs": [
+        {
+          "name": "shift_map",
+          "type": "IMAGE",
+          "links": [
+            3
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "SameFaceShiftMap"
+      },
+      "widgets_values": [
+        "similarity"
+      ]
+    },
+    {
+      "id": 17,
+      "type": "SameFaceShiftMap",
+      "title": "Shift map of the repair",
+      "pos": [
+        1260,
+        40
+      ],
+      "size": [
+        300,
+        110
+      ],
+      "flags": {},
+      "order": 8,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "drift",
+          "type": "SAMEFACE_DRIFT",
+          "link": 18
+        }
+      ],
+      "outputs": [
+        {
+          "name": "shift_map",
+          "type": "IMAGE",
+          "links": [
+            10
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "SameFaceShiftMap"
+      },
+      "widgets_values": [
+        "similarity"
+      ]
+    },
+    {
+      "id": 18,
+      "type": "SameFaceView",
+      "title": "View: the repair, measured",
+      "pos": [
+        40,
+        2080
+      ],
+      "size": [
+        320,
+        260
+      ],
+      "flags": {},
+      "order": 11,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "drift",
+          "type": "SAMEFACE_DRIFT",
+          "link": 19
+        }
+      ],
+      "outputs": [
+        {
+          "name": "before_view",
+          "type": "IMAGE",
+          "links": [
+            1914887608607233
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "after_view",
+          "type": "IMAGE",
+          "links": [
+            2176154943860865
+          ],
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "SameFaceView"
+      },
+      "widgets_values": [
+        "similarity",
+        true,
+        true,
+        "5",
+        true
+      ]
+    },
+    {
+      "id": 3379168533948518,
+      "type": "ImageCompare",
+      "pos": [
+        420,
+        2080
+      ],
+      "size": [
+        270.0,
+        114.0
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image_a",
+          "type": "IMAGE",
+          "link": 1914887608607233
+        },
+        {
+          "name": "image_b",
+          "type": "IMAGE",
+          "link": 2176154943860865
+        }
+      ],
+      "outputs": [],
+      "properties": {},
+      "widgets_values": [
+        null
+      ],
+      "title": "Slider: before / repaired"
+    }
+  ],
+  "links": [
+    [
       1,
-      8
-     ],
-     "slot_index": 0
-    },
-    {
-     "name": "MASK",
-     "type": "MASK",
-     "links": [],
-     "slot_index": 1
-    }
-   ],
-   "properties": {
-    "Node name for S&R": "LoadImage"
-   },
-   "widgets_values": [
-    "sameface_720p_before.png",
-    "image"
-   ]
-  },
-  {
-   "id": 2,
-   "type": "LoadImage",
-   "title": "After (edited)",
-   "pos": [
-    40,
-    480
-   ],
-   "size": [
-    320,
-    380
-   ],
-   "flags": {},
-   "order": 1,
-   "mode": 0,
-   "inputs": [],
-   "outputs": [
-    {
-     "name": "IMAGE",
-     "type": "IMAGE",
-     "links": [
-      2
-     ],
-     "slot_index": 0
-    },
-    {
-     "name": "MASK",
-     "type": "MASK",
-     "links": [],
-     "slot_index": 1
-    }
-   ],
-   "properties": {
-    "Node name for S&R": "LoadImage"
-   },
-   "widgets_values": [
-    "sameface_720p_after.png",
-    "image"
-   ]
-  },
-  {
-   "id": 3,
-   "type": "SameFaceMeasure",
-   "title": "Measure",
-   "pos": [
-    420,
-    200
-   ],
-   "size": [
-    300,
-    220
-   ],
-   "flags": {},
-   "order": 2,
-   "mode": 0,
-   "inputs": [
-    {
-     "name": "before",
-     "type": "IMAGE",
-     "link": 1
-    },
-    {
-     "name": "after",
-     "type": "IMAGE",
-     "link": 2
-    }
-   ],
-   "outputs": [
-    {
-     "name": "drift",
-     "type": "SAMEFACE_DRIFT",
-     "links": [
+      1,
+      0,
+      3,
+      0,
+      "IMAGE"
+    ],
+    [
+      2,
+      2,
+      0,
+      3,
+      1,
+      "IMAGE"
+    ],
+    [
+      3,
+      16,
+      0,
+      4,
+      0,
+      "IMAGE"
+    ],
+    [
+      4,
+      3,
+      1,
+      5,
+      0,
+      "STRING"
+    ],
+    [
+      5,
+      3,
+      4,
       6,
-      12,
-      17
-     ],
-     "slot_index": 0
-    },
-    {
-     "name": "report",
-     "type": "STRING",
-     "links": [
-      4
-     ],
-     "slot_index": 1
-    },
-    {
-     "name": "similarity_median",
-     "type": "FLOAT",
-     "links": [],
-     "slot_index": 2
-    },
-    {
-     "name": "affine_median",
-     "type": "FLOAT",
-     "links": [],
-     "slot_index": 3
-    },
-    {
-     "name": "before_mask",
-     "type": "MASK",
-     "links": [
-      5
-     ],
-     "slot_index": 4
-    },
-    {
-     "name": "after_mask",
-     "type": "MASK",
-     "links": [],
-     "slot_index": 5
-    },
-    {
-     "name": "points",
-     "type": "STRING",
-     "links": [],
-     "slot_index": 6
-    }
-   ],
-   "properties": {
-    "Node name for S&R": "SameFaceMeasure"
-   },
-   "widgets_values": [
-    true
-   ]
-  },
-  {
-   "id": 4,
-   "type": "PreviewImage",
-   "title": "Shift map",
-   "pos": [
-    780,
-    40
-   ],
-   "size": [
-    420,
-    420
-   ],
-   "flags": {},
-   "order": 3,
-   "mode": 0,
-   "inputs": [
-    {
-     "name": "images",
-     "type": "IMAGE",
-     "link": 3
-    }
-   ],
-   "outputs": [
-    {
-     "name": "images",
-     "type": "IMAGE",
-     "links": [],
-     "slot_index": 0
-    }
-   ],
-   "properties": {
-    "Node name for S&R": "PreviewImage"
-   },
-   "widgets_values": []
-  },
-  {
-   "id": 5,
-   "type": "PreviewAny",
-   "title": "Report",
-   "pos": [
-    780,
-    500
-   ],
-   "size": [
-    420,
-    260
-   ],
-   "flags": {},
-   "order": 4,
-   "mode": 0,
-   "inputs": [
-    {
-     "name": "source",
-     "type": "*",
-     "link": 4
-    }
-   ],
-   "outputs": [
-    {
-     "name": "STRING",
-     "type": "STRING",
-     "links": [],
-     "slot_index": 0
-    }
-   ],
-   "properties": {
-    "Node name for S&R": "PreviewAny"
-   },
-   "widgets_values": []
-  },
-  {
-   "id": 6,
-   "type": "MaskPreview",
-   "title": "Before face mask",
-   "pos": [
-    420,
-    480
-   ],
-   "size": [
-    300,
-    300
-   ],
-   "flags": {},
-   "order": 5,
-   "mode": 0,
-   "inputs": [
-    {
-     "name": "mask",
-     "type": "MASK",
-     "link": 5
-    }
-   ],
-   "outputs": [
-    {
-     "name": "mask",
-     "type": "MASK",
-     "links": [],
-     "slot_index": 0
-    }
-   ],
-   "properties": {
-    "Node name for S&R": "MaskPreview"
-   },
-   "widgets_values": []
-  },
-  {
-   "id": 7,
-   "type": "SameFaceRepair",
-   "title": "Repair",
-   "pos": [
-    780,
-    800
-   ],
-   "size": [
-    300,
-    110
-   ],
-   "flags": {},
-   "order": 6,
-   "mode": 0,
-   "inputs": [
-    {
-     "name": "drift",
-     "type": "SAMEFACE_DRIFT",
-     "link": 6
-    }
-   ],
-   "outputs": [
-    {
-     "name": "repaired",
-     "type": "IMAGE",
-     "links": [
+      0,
+      "MASK"
+    ],
+    [
+      6,
+      3,
+      0,
       7,
-      9
-     ],
-     "slot_index": 0
-    },
-    {
-     "name": "covered",
-     "type": "MASK",
-     "links": [],
-     "slot_index": 1
-    }
-   ],
-   "properties": {
-    "Node name for S&R": "SameFaceRepair"
-   },
-   "widgets_values": [
-    1.0,
-    "after"
-   ]
-  },
-  {
-   "id": 8,
-   "type": "SaveImage",
-   "title": "Repaired",
-   "pos": [
-    1140,
-    800
-   ],
-   "size": [
-    380,
-    420
-   ],
-   "flags": {},
-   "order": 7,
-   "mode": 0,
-   "inputs": [
-    {
-     "name": "images",
-     "type": "IMAGE",
-     "link": 7
-    }
-   ],
-   "outputs": [
-    {
-     "name": "images",
-     "type": "IMAGE",
-     "links": [],
-     "slot_index": 0
-    }
-   ],
-   "properties": {
-    "Node name for S&R": "SaveImage"
-   },
-   "widgets_values": [
-    "sameface/repaired"
-   ]
-  },
-  {
-   "id": 9,
-   "type": "SameFaceMeasure",
-   "title": "Measure the repair",
-   "pos": [
-    1260,
-    200
-   ],
-   "size": [
-    300,
-    220
-   ],
-   "flags": {},
-   "order": 8,
-   "mode": 0,
-   "inputs": [
-    {
-     "name": "before",
-     "type": "IMAGE",
-     "link": 8
-    },
-    {
-     "name": "after",
-     "type": "IMAGE",
-     "link": 9
-    }
-   ],
-   "outputs": [
-    {
-     "name": "drift",
-     "type": "SAMEFACE_DRIFT",
-     "links": [
-      18,
-      19
-     ],
-     "slot_index": 0
-    },
-    {
-     "name": "report",
-     "type": "STRING",
-     "links": [
-      11
-     ],
-     "slot_index": 1
-    },
-    {
-     "name": "similarity_median",
-     "type": "FLOAT",
-     "links": [],
-     "slot_index": 2
-    },
-    {
-     "name": "affine_median",
-     "type": "FLOAT",
-     "links": [],
-     "slot_index": 3
-    },
-    {
-     "name": "before_mask",
-     "type": "MASK",
-     "links": [],
-     "slot_index": 4
-    },
-    {
-     "name": "after_mask",
-     "type": "MASK",
-     "links": [],
-     "slot_index": 5
-    },
-    {
-     "name": "points",
-     "type": "STRING",
-     "links": [],
-     "slot_index": 6
-    }
-   ],
-   "properties": {
-    "Node name for S&R": "SameFaceMeasure"
-   },
-   "widgets_values": [
-    true
-   ]
-  },
-  {
-   "id": 10,
-   "type": "PreviewImage",
-   "title": "Shift map after repair",
-   "pos": [
-    1600,
-    40
-   ],
-   "size": [
-    420,
-    420
-   ],
-   "flags": {},
-   "order": 9,
-   "mode": 0,
-   "inputs": [
-    {
-     "name": "images",
-     "type": "IMAGE",
-     "link": 10
-    }
-   ],
-   "outputs": [
-    {
-     "name": "images",
-     "type": "IMAGE",
-     "links": [],
-     "slot_index": 0
-    }
-   ],
-   "properties": {
-    "Node name for S&R": "PreviewImage"
-   },
-   "widgets_values": []
-  },
-  {
-   "id": 11,
-   "type": "PreviewAny",
-   "title": "Report after repair",
-   "pos": [
-    1600,
-    500
-   ],
-   "size": [
-    420,
-    260
-   ],
-   "flags": {},
-   "order": 10,
-   "mode": 0,
-   "inputs": [
-    {
-     "name": "source",
-     "type": "*",
-     "link": 11
-    }
-   ],
-   "outputs": [
-    {
-     "name": "STRING",
-     "type": "STRING",
-     "links": [],
-     "slot_index": 0
-    }
-   ],
-   "properties": {
-    "Node name for S&R": "PreviewAny"
-   },
-   "widgets_values": []
-  },
-  {
-   "id": 12,
-   "type": "SameFaceView",
-   "title": "View: points and mesh",
-   "pos": [
-    40,
-    1300
-   ],
-   "size": [
-    320,
-    260
-   ],
-   "flags": {},
-   "order": 11,
-   "mode": 0,
-   "inputs": [
-    {
-     "name": "drift",
-     "type": "SAMEFACE_DRIFT",
-     "link": 12
-    }
-   ],
-   "outputs": [
-    {
-     "name": "before_view",
-     "type": "IMAGE",
-     "links": [
+      0,
+      "SAMEFACE_DRIFT"
+    ],
+    [
+      7,
+      7,
+      0,
+      8,
+      0,
+      "IMAGE"
+    ],
+    [
+      8,
+      1,
+      0,
+      9,
+      0,
+      "IMAGE"
+    ],
+    [
+      9,
+      7,
+      0,
+      9,
+      1,
+      "IMAGE"
+    ],
+    [
+      10,
+      17,
+      0,
+      10,
+      0,
+      "IMAGE"
+    ],
+    [
+      11,
+      9,
+      1,
+      11,
+      0,
+      "STRING"
+    ],
+    [
+      12,
+      3,
+      0,
+      12,
+      0,
+      "SAMEFACE_DRIFT"
+    ],
+    [
       13,
-      15
-     ],
-     "slot_index": 0
-    },
-    {
-     "name": "after_view",
-     "type": "IMAGE",
-     "links": [
+      12,
+      0,
+      13,
+      1,
+      "IMAGE"
+    ],
+    [
       14,
-      16
-     ],
-     "slot_index": 1
-    }
-   ],
-   "properties": {
-    "Node name for S&R": "SameFaceView"
-   },
-   "widgets_values": [
-    "similarity",
-    true,
-    true,
-    "5",
-    true
-   ]
-  },
-  {
-   "id": 13,
-   "type": "ImageCompare",
-   "title": "Slider: before / after",
-   "pos": [
-    420,
-    1300
-   ],
-   "size": [
-    640,
-    700
-   ],
-   "flags": {},
-   "order": 12,
-   "mode": 0,
-   "inputs": [
-    {
-     "name": "compare_view",
-     "type": "IMAGECOMPARE",
-     "widget": {
-      "name": "compare_view"
-     },
-     "link": null
-    },
-    {
-     "name": "image_a",
-     "type": "IMAGE",
-     "link": 13
-    },
-    {
-     "name": "image_b",
-     "type": "IMAGE",
-     "link": 14
-    }
-   ],
-   "outputs": [],
-   "properties": {
-    "Node name for S&R": "ImageCompare"
-   },
-   "widgets_values": []
-  },
-  {
-   "id": 14,
-   "type": "PreviewImage",
-   "title": "Before with points",
-   "pos": [
-    1100,
-    1300
-   ],
-   "size": [
-    440,
-    460
-   ],
-   "flags": {},
-   "order": 13,
-   "mode": 0,
-   "inputs": [
-    {
-     "name": "images",
-     "type": "IMAGE",
-     "link": 15
-    }
-   ],
-   "outputs": [
-    {
-     "name": "images",
-     "type": "IMAGE",
-     "links": [],
-     "slot_index": 0
-    }
-   ],
-   "properties": {
-    "Node name for S&R": "PreviewImage"
-   },
-   "widgets_values": []
-  },
-  {
-   "id": 15,
-   "type": "PreviewImage",
-   "title": "After with points",
-   "pos": [
-    1580,
-    1300
-   ],
-   "size": [
-    440,
-    460
-   ],
-   "flags": {},
-   "order": 14,
-   "mode": 0,
-   "inputs": [
-    {
-     "name": "images",
-     "type": "IMAGE",
-     "link": 16
-    }
-   ],
-   "outputs": [
-    {
-     "name": "images",
-     "type": "IMAGE",
-     "links": [],
-     "slot_index": 0
-    }
-   ],
-   "properties": {
-    "Node name for S&R": "PreviewImage"
-   },
-   "widgets_values": []
-  },
-  {
-   "id": 16,
-   "type": "SameFaceShiftMap",
-   "title": "Shift map",
-   "pos": [
-    420,
-    40
-   ],
-   "size": [
-    300,
-    110
-   ],
-   "flags": {},
-   "order": 2,
-   "mode": 0,
-   "inputs": [
-    {
-     "name": "drift",
-     "type": "SAMEFACE_DRIFT",
-     "link": 17
-    }
-   ],
-   "outputs": [
-    {
-     "name": "shift_map",
-     "type": "IMAGE",
-     "links": [
-      3
-     ],
-     "slot_index": 0
-    }
-   ],
-   "properties": {
-    "Node name for S&R": "SameFaceShiftMap"
-   },
-   "widgets_values": [
-    "similarity"
-   ]
-  },
-  {
-   "id": 17,
-   "type": "SameFaceShiftMap",
-   "title": "Shift map of the repair",
-   "pos": [
-    1260,
-    40
-   ],
-   "size": [
-    300,
-    110
-   ],
-   "flags": {},
-   "order": 8,
-   "mode": 0,
-   "inputs": [
-    {
-     "name": "drift",
-     "type": "SAMEFACE_DRIFT",
-     "link": 18
-    }
-   ],
-   "outputs": [
-    {
-     "name": "shift_map",
-     "type": "IMAGE",
-     "links": [
-      10
-     ],
-     "slot_index": 0
-    }
-   ],
-   "properties": {
-    "Node name for S&R": "SameFaceShiftMap"
-   },
-   "widgets_values": [
-    "similarity"
-   ]
-  },
-  {
-   "id": 18,
-   "type": "SameFaceView",
-   "title": "View: the repair, measured",
-   "pos": [
-    40,
-    2080
-   ],
-   "size": [
-    320,
-    260
-   ],
-   "flags": {},
-   "order": 11,
-   "mode": 0,
-   "inputs": [
-    {
-     "name": "drift",
-     "type": "SAMEFACE_DRIFT",
-     "link": 19
-    }
-   ],
-   "outputs": [
-    {
-     "name": "before_view",
-     "type": "IMAGE",
-     "links": [
-      20
-     ],
-     "slot_index": 0
-    },
-    {
-     "name": "after_view",
-     "type": "IMAGE",
-     "links": [
-      21
-     ],
-     "slot_index": 1
-    }
-   ],
-   "properties": {
-    "Node name for S&R": "SameFaceView"
-   },
-   "widgets_values": [
-    "similarity",
-    true,
-    true,
-    "5",
-    true
-   ]
-  },
-  {
-   "id": 19,
-   "type": "ImageCompare",
-   "title": "Slider: before / repaired",
-   "pos": [
-    420,
-    2080
-   ],
-   "size": [
-    640,
-    700
-   ],
-   "flags": {},
-   "order": 12,
-   "mode": 0,
-   "inputs": [
-    {
-     "name": "compare_view",
-     "type": "IMAGECOMPARE",
-     "widget": {
-      "name": "compare_view"
-     },
-     "link": 20
-    },
-    {
-     "name": "image_a",
-     "type": "IMAGE",
-     "link": 21
-    },
-    {
-     "name": "image_b",
-     "type": "IMAGE",
-     "link": null
-    }
-   ],
-   "outputs": [],
-   "properties": {
-    "Node name for S&R": "ImageCompare"
-   },
-   "widgets_values": []
-  }
- ],
- "links": [
-  [
-   1,
-   1,
-   0,
-   3,
-   0,
-   "IMAGE"
+      12,
+      1,
+      13,
+      2,
+      "IMAGE"
+    ],
+    [
+      15,
+      12,
+      0,
+      14,
+      0,
+      "IMAGE"
+    ],
+    [
+      16,
+      12,
+      1,
+      15,
+      0,
+      "IMAGE"
+    ],
+    [
+      17,
+      3,
+      0,
+      16,
+      0,
+      "SAMEFACE_DRIFT"
+    ],
+    [
+      18,
+      9,
+      0,
+      17,
+      0,
+      "SAMEFACE_DRIFT"
+    ],
+    [
+      19,
+      9,
+      0,
+      18,
+      0,
+      "SAMEFACE_DRIFT"
+    ],
+    [
+      1914887608607233,
+      18,
+      0,
+      3379168533948518,
+      0,
+      "IMAGE"
+    ],
+    [
+      2176154943860865,
+      18,
+      1,
+      3379168533948518,
+      1,
+      "IMAGE"
+    ]
   ],
-  [
-   2,
-   2,
-   0,
-   3,
-   1,
-   "IMAGE"
-  ],
-  [
-   3,
-   16,
-   0,
-   4,
-   0,
-   "IMAGE"
-  ],
-  [
-   4,
-   3,
-   1,
-   5,
-   0,
-   "STRING"
-  ],
-  [
-   5,
-   3,
-   4,
-   6,
-   0,
-   "MASK"
-  ],
-  [
-   6,
-   3,
-   0,
-   7,
-   0,
-   "SAMEFACE_DRIFT"
-  ],
-  [
-   7,
-   7,
-   0,
-   8,
-   0,
-   "IMAGE"
-  ],
-  [
-   8,
-   1,
-   0,
-   9,
-   0,
-   "IMAGE"
-  ],
-  [
-   9,
-   7,
-   0,
-   9,
-   1,
-   "IMAGE"
-  ],
-  [
-   10,
-   17,
-   0,
-   10,
-   0,
-   "IMAGE"
-  ],
-  [
-   11,
-   9,
-   1,
-   11,
-   0,
-   "STRING"
-  ],
-  [
-   12,
-   3,
-   0,
-   12,
-   0,
-   "SAMEFACE_DRIFT"
-  ],
-  [
-   13,
-   12,
-   0,
-   13,
-   1,
-   "IMAGE"
-  ],
-  [
-   14,
-   12,
-   1,
-   13,
-   2,
-   "IMAGE"
-  ],
-  [
-   15,
-   12,
-   0,
-   14,
-   0,
-   "IMAGE"
-  ],
-  [
-   16,
-   12,
-   1,
-   15,
-   0,
-   "IMAGE"
-  ],
-  [
-   17,
-   3,
-   0,
-   16,
-   0,
-   "SAMEFACE_DRIFT"
-  ],
-  [
-   18,
-   9,
-   0,
-   17,
-   0,
-   "SAMEFACE_DRIFT"
-  ],
-  [
-   19,
-   9,
-   0,
-   18,
-   0,
-   "SAMEFACE_DRIFT"
-  ],
-  [
-   20,
-   18,
-   0,
-   19,
-   0,
-   "IMAGE"
-  ],
-  [
-   21,
-   18,
-   1,
-   19,
-   1,
-   "IMAGE"
-  ]
- ],
- "groups": [],
- "config": {},
- "extra": {},
- "version": 0.4
+  "groups": [],
+  "config": {},
+  "extra": {},
+  "version": 0.4
 }
