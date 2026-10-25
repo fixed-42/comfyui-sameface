@@ -9,13 +9,49 @@ so each test knows its answer.
 import numpy as np
 import pytest
 
-from sameface.mask_shapes import ears_beside, join, outline, parts
+from sameface.mask_shapes import ears_beside, join, outline, parts, pick_face
 
 FACE = [100.0, 100.0, 300.0, 400.0]      # 200 wide, 300 tall
 
 
 def box(cx, cy, w=40, h=70):
     return [cx - w / 2, cy - h / 2, cx + w / 2, cy + h / 2]
+
+
+# ---------- which face, when there are several ----------
+
+# A family photo as the detector saw it: a poster on the wall, then a baby,
+# the mother and the father, left to right. The father is barely the surest.
+POSTER, BABY = (box(110, 75, 50, 43), 0.43), (box(245, 408, 103, 135), 0.59)
+MOTHER, FATHER = (box(431, 359, 118, 160), 0.63), (box(698, 300, 131, 193), 0.65)
+FAMILY = [MOTHER, POSTER, FATHER, BABY]
+
+
+def test_the_surest_face_comes_first():
+    assert pick_face(FAMILY, "surest", 0) == FATHER
+    assert pick_face(FAMILY, "surest", 1) == MOTHER
+
+
+def test_left_to_right_counts_from_the_left_edge():
+    """By the middle of each box, so a tall face starting further left than
+    a small one beside it does not jump the queue."""
+    assert [pick_face(FAMILY, "left to right", index) for index in range(4)] == \
+        [POSTER, BABY, MOTHER, FATHER]
+
+
+def test_a_face_past_the_last_is_an_error_that_says_how_many_there_are():
+    with pytest.raises(ValueError, match="4 faces found"):
+        pick_face(FAMILY, "left to right", 4)
+
+
+def test_no_face_is_an_error():
+    with pytest.raises(ValueError, match="no face found"):
+        pick_face([], "surest", 0)
+
+
+def test_an_unknown_order_is_an_error():
+    with pytest.raises(ValueError, match="order"):
+        pick_face(FAMILY, "tallest", 0)
 
 
 # ---------- which ears belong to the face ----------

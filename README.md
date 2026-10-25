@@ -12,7 +12,8 @@ same person. SameFace measures that drift and repairs it.
 Measure runs the models and gives the figures. Every picture is drawn by a
 node of its own from Measure's `drift`, and runs no models.
 
-**SameFace Measure**: `before` + `after` →
+**SameFace Measure**: `before` + `after` (+ `before_mask`, `after_mask`,
+optional) →
 - `report`: the figures in words
 - `similarity_median`, `affine_median`: the headline figures, % of face size
 - `before_mask`, `after_mask`: the face masks used
@@ -20,6 +21,24 @@ node of its own from Measure's `drift`, and runs no models.
 - `points`: every measured point as JSON, one list per column (`pair`, `x`,
   `y`, `dx_`/`dy_`/`drift_` for each fit, `confidence`, `part`), for your own
   plots or analysis
+
+Without a mask, Measure finds the face itself, and when there are several
+it measures the surest on each side; the report says when that happened.
+A wired mask is used instead, on that side only: everything inside it is
+measured as face, so `ears` has no effect there. One mask serves every image,
+or give one per image; a mask must be its image's size. A box-shaped mask (a
+detector's bounding box) is measured, and the report warns that hair and
+background inside it count as face.
+
+**SameFace Face Mask**: `image` + `order`, `index`, `ears` → `mask`, `faces_found`
+
+One person's face when there are several: the faces are counted `left to
+right` (by the middle of each face) or `surest` first, and the one at `index`,
+from 0, is masked. Wire one into each of Measure's `before_mask` and
+`after_mask`, choosing the same person on both sides. Left to right is the
+default because it stays put when two faces score nearly the same, which
+`surest` does not; if the edit moved people around, the index can differ
+between the sides. `faces_found` says how many there were.
 
 **SameFace Shift Map**: `drift` + `fit` → `shift_map`
 
@@ -68,7 +87,8 @@ Batches: one before with any number of afters, or as many befores as afters.
 ## How it measures
 
 1. **Face mask**: Grounding DINO finds the face and the ears from the words
-   "face" and "ear"; SAM 2 outlines them. Ears in, neck out.
+   "face" and "ear"; SAM 2 outlines them. Ears in, neck out. Or the mask you
+   wire in.
 2. **Optical flow**: each side is cropped to its own face and resampled to one
    working size, so a resize or a reframing is not mistaken for drift. RAFT then
    follows every pixel of the before face into the after, forwards and

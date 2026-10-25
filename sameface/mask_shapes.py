@@ -17,6 +17,11 @@ BESIDE = 0.4
 EAR_WIDTH, EAR_HEIGHT = 0.45, 0.6
 MAX_EARS = 2
 
+# How the faces in a picture are counted, for choosing one of several people.
+# "surest" is the detector's own confidence; "left to right" goes by the
+# middle of each box, and is the one that stays put when two scores are close.
+ORDERS = ("surest", "left to right")
+
 # How far apart an ear and the face may be and still be joined, as a share of
 # the face mask's diagonal. Two masks cut separately seldom meet exactly;
 # this bridges a hairline gap without reaching across a cheek.
@@ -24,6 +29,22 @@ JOIN_REACH = 0.04
 # Douglas-Peucker tolerance as a share of the perimeter: tens of vertices
 # rather than thousands, with the notches still in.
 EPSILON_FRAC = 0.0015
+
+
+def pick_face(faces, order="surest", index=0):
+    """The `(box, score)` at `index` among `faces`, counted in `order`."""
+    if order == "surest":
+        ranked = sorted(faces, key=lambda face: -face[1])
+    elif order == "left to right":
+        ranked = sorted(faces, key=lambda face: face[0][0] + face[0][2])
+    else:
+        raise ValueError(f"unknown face order {order!r}: one of {', '.join(ORDERS)}")
+    if not ranked:
+        raise ValueError("no face found in the image")
+    if not 0 <= index < len(ranked):
+        raise ValueError(f"face {index} asked for, but {len(ranked)} faces found "
+                         f"(0 to {len(ranked) - 1}, {order})")
+    return ranked[index]
 
 
 def ears_beside(face_box, found):

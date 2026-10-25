@@ -51,7 +51,8 @@ FRAMINGS = ("after", "before")
 
 @dataclass
 class Region:
-    """One side's face mask, as `models.FaceMasker` finds it."""
+    """One side's face mask, as `models.FaceMasker` finds it or as it was
+    supplied (`regions.region_from_mask`)."""
 
     mask: np.ndarray            # (h, w) uint8, 1 on the face (and joined ears)
     outline: np.ndarray         # (n, 2) the mask's outer boundary, in order
@@ -60,6 +61,9 @@ class Region:
     faces_found: int = 0
     ears_found: int = 0
     ears_joined: int = 0
+    supplied: bool = False      # wired in, not found here: all of it is face
+    pieces_dropped: int = 0     # supplied pieces left out, the largest kept
+    box_shaped: bool = False    # supplied, and near enough a rectangle
 
 
 @dataclass
@@ -204,12 +208,14 @@ def fit_drift(after_points, before_points, mode, noise_floor=NOISE_FLOOR):
                transform=geometry.describe(matrix, after_points, before_points))
 
 
-def measure(before, after, masker, flows, ears=True):
+def measure(before, after, masker, flows, ears=True, before_region=None, after_region=None):
     """Everything about one pair. `before` and `after` are uint8 RGB arrays.
 
-    `masker(rgb)` returns a `Region`; `flows` is as `sample_flow` takes it.
+    `masker(rgb)` returns a `Region`, and is asked only for a side whose
+    region was not given; `flows` is as `sample_flow` takes it.
     """
-    before_region, after_region = masker(before), masker(after)
+    before_region = before_region if before_region is not None else masker(before)
+    after_region = after_region if after_region is not None else masker(after)
     record = sample_flow(flows, before, after, before_region, after_region)
     after_px, before_px, confidence = chosen(record, ears)
 

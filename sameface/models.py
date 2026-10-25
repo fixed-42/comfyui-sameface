@@ -16,7 +16,7 @@ import numpy as np
 import torch
 from PIL import Image
 
-from .mask_shapes import ears_beside, join, outline, parts
+from .mask_shapes import ears_beside, join, outline, parts, pick_face
 from .measure import Region
 
 # Pinned to commits, not to `main`: the weights decide the outline, and a
@@ -122,16 +122,14 @@ class FaceMasker(_OnDemand):
             outputs.pred_masks.cpu(), inputs["original_sizes"])[0]
         return (masks[0, 0].numpy() > 0).astype(np.uint8)
 
-    def __call__(self, rgb):
+    def __call__(self, rgb, order="surest", index=0, ears=True):
+        """The face at `index` in `order` (`mask_shapes.ORDERS`), with its
+        ears joined unless `ears` is False."""
         with self:
             pil = Image.fromarray(rgb)
-            faces = sorted(self.detect(pil, FACE_PROMPT), key=lambda face: -face[1])
-            if not faces:
-                raise ValueError("no face found in the image")
-            # The surest one. Choosing between several people is not
-            # something this can do yet.
-            box, score = faces[0]
-            ears = ears_beside(box, self.detect(pil, EAR_PROMPT))
+            faces = self.detect(pil, FACE_PROMPT)
+            box, score = pick_face(faces, order, index)
+            ears = ears_beside(box, self.detect(pil, EAR_PROMPT)) if ears else []
             face_mask = self.segment(rgb, box)
             ear_masks = [self.segment(rgb, ear) for ear, _ in ears]
         mask, kept = join(face_mask, ear_masks)

@@ -201,3 +201,63 @@ def test_points_that_did_not_come_back_are_counted_and_marked():
     marked, _ = views(drift, frame, points=False, mesh=False, dropped=True)
     plain, _ = views(drift, frame, points=False, mesh=False, dropped=False)
     assert (marked != plain).any()
+
+
+# ---------- a face mask supplied in place of our own ----------
+
+
+def _oval_mask(rgb):
+    return oval_masker(rgb).mask
+
+
+def test_a_supplied_mask_measures_as_our_own_masker_would():
+    """The same pixels, whichever way the mask arrives: wiring a mask in
+    changes where it comes from, not the figures."""
+    from sameface.regions import region_from_mask
+    before = textured(320, 400)
+    after = before.copy()
+
+    ours = measure(before, after, oval_masker, a_patch_moved(6.0))
+    theirs = measure(before, after, None, a_patch_moved(6.0),
+                     before_region=region_from_mask(_oval_mask(before)),
+                     after_region=region_from_mask(_oval_mask(after)))
+
+    for mode in ("similarity", "affine"):
+        assert theirs.fits[mode].median == pytest.approx(ours.fits[mode].median)
+    assert len(theirs.before_points) == len(ours.before_points)
+
+
+def test_a_side_without_a_supplied_mask_is_masked_as_before():
+    from sameface.regions import region_from_mask
+    before = textured(320, 400)
+    asked = []
+
+    def masker(rgb):
+        asked.append(rgb)
+        return oval_masker(rgb)
+
+    drift = measure(before, before.copy(), masker, still,
+                    before_region=region_from_mask(_oval_mask(before)))
+
+    assert len(asked) == 1
+    assert drift.before_region.supplied and not drift.after_region.supplied
+
+
+def test_the_report_says_where_each_mask_came_from():
+    from sameface import drawing
+    from sameface.regions import region_from_mask
+    before = textured(320, 400)
+    box = np.zeros(before.shape[:2], np.uint8)
+    box[100:300, 100:220] = 1
+
+    def two_people(rgb):
+        region = oval_masker(rgb)
+        region.faces_found = 2
+        return region
+
+    text = drawing.report(measure(before, before.copy(), two_people, still,
+                                  before_region=region_from_mask(box)), 0.05)
+
+    assert "mask before: supplied" in text
+    assert "before mask is box-shaped" in text
+    assert "2 faces found and the surest measured" in text

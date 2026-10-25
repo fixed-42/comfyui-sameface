@@ -99,7 +99,8 @@ def report(drift, floor, label=None):
     gaps = len(dropped(drift.record, drift.ears))
     lines = [f"SameFace drift{f' - {label}' if label else ''}",
              f"RAFT, {len(drift.before_points)} points on the face"
-             f"{' and ears' if drift.ears else ''}; noise floor {floor}% of face size"]
+             f"{' and ears' if drift.ears and not drift.before_region.supplied else ''}"
+             f"; noise floor {floor}% of face size"]
     if gaps:
         lines.append(f"  {gaps} more dropped: the flow did not come back to where it started")
     for mode, fit in drift.fits.items():
@@ -112,7 +113,26 @@ def report(drift, floor, label=None):
             + (f"  stretch x {shape['stretch_x']:.4f} y {shape['stretch_y']:.4f}"
                f"  shear {shape['shear_deg']:+.2f} deg" if mode == "affine" else ""))
     for side, region in (("before", drift.before_region), ("after", drift.after_region)):
-        lines.append(f"  mask {side}: face {region.face_score:.2f}"
-                     f"{f' ({region.faces_found} faces found, surest used)' if region.faces_found > 1 else ''}"
-                     f", ears {region.ears_joined} joined of {region.ears_found} found")
+        lines.extend(_mask_lines(side, region))
     return "\n".join(lines)
+
+
+def _mask_lines(side, region):
+    """Where one side's face mask came from, and what to watch for in it."""
+    if region.supplied:
+        lines = [f"  mask {side}: supplied - all of it measured as face, the ears switch "
+                 "has no effect"]
+        if region.pieces_dropped:
+            lines.append(f"    {region.pieces_dropped} smaller piece(s) of it left out, "
+                         "the largest measured")
+        if region.box_shaped:
+            lines.append(f"    the {side} mask is box-shaped: hair and background inside it "
+                         "are measured as face")
+        return lines
+    lines = [f"  mask {side}: face {region.face_score:.2f}, ears {region.ears_joined} joined "
+             f"of {region.ears_found} found"]
+    if region.faces_found > 1:
+        lines.append(f"    {region.faces_found} faces found and the surest measured: if the "
+                     "two sides could be different people, choose one with SameFace Face "
+                     "Mask on each side")
+    return lines

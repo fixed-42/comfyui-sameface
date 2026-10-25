@@ -1,5 +1,5 @@
-"""The ComfyUI nodes: SameFace Measure, Repair, Shift Map, View, Drift
-Histogram and Drift Zones.
+"""The ComfyUI nodes: SameFace Measure, Face Mask, Repair, Shift Map, View,
+Drift Histogram and Drift Zones.
 
 Measure takes a before and an after and says how far the edit moved the face,
 in figures; every picture of it is drawn by a node of its own from Measure's
@@ -13,6 +13,10 @@ Drift Zones draw the points as a chart and as a grid over the face.
 
 Batches: one before with any number of afters, or as many befores as afters,
 paired in order.
+
+Face Mask chooses one person when there are several, and its mask can be wired
+into Measure - as can any other node's: whatever is inside a supplied mask is
+measured as face.
 """
 import json
 from functools import lru_cache
@@ -26,9 +30,11 @@ from comfy_api.latest import ComfyExtension, io
 
 from .sameface import drawing
 from .sameface.geometry import FITS
+from .sameface.mask_shapes import ORDERS
 from .sameface.measure import FRAMINGS, NOISE_FLOOR, measure, repair, repair_frame
 from .sameface.models import FaceMasker, Flow
 from .sameface.plots import drift_histogram, drift_zones, point_table, same_size
+from .sameface.regions import masks_for, region_from_mask
 from .sameface.views import EXAGGERATIONS, views
 
 Drift = io.Custom("SAMEFACE_DRIFT")
@@ -51,6 +57,21 @@ def _image(arrays):
 
 def _mask(arrays):
     return torch.from_numpy(np.stack(arrays).astype(np.float32))
+
+
+def _masks(masks, images, side):
+    """A wired MASK as one array or None per image, checked against them."""
+    array = None if masks is None else masks.detach().cpu().float().numpy()
+    return masks_for(array, [image.shape[:2] for image in images], side)
+
+
+def _region(mask, side):
+    if mask is None:
+        return None
+    try:
+        return region_from_mask(mask)
+    except ValueError as error:
+        raise ValueError(f"the {side} mask: {error}") from None
 
 
 def _paired(befores, afters):
@@ -90,6 +111,16 @@ class SameFaceMeasure(io.ComfyNode):
                 io.Boolean.Input(
                     "ears", default=True,
                     tooltip="Count the points on the ears as well as the face."),
+                io.Mask.Input(
+                    "before_mask", optional=True,
+                    tooltip="A face mask for the before, in place of the one found here - "
+                            "from SameFace Face Mask to choose one of several people, or "
+                            "any other node. All of it is measured as face. One mask, or "
+                            "one per image."),
+                io.Mask.Input(
+                    "after_mask", optional=True,
+                    tooltip="A face mask for the after, as for the before: one mask, or "
+                            "one per after."),
             ],
             outputs=[
                 Drift.Output("drift", tooltip="Everything measured: for Repair, and for "
@@ -109,12 +140,17 @@ class SameFaceMeasure(io.ComfyNode):
         )
 
     @classmethod
-    def execute(cls, before, after, ears) -> io.NodeOutput:
+    def execute(cls, before, after, ears, before_mask=None, after_mask=None) -> io.NodeOutput:
         masker, flows = _models()
+        befores, afters = _rgb(before), _rgb(after)
+        befores = list(zip(befores, _masks(before_mask, befores, "before")))
+        afters = list(zip(afters, _masks(after_mask, afters, "after")))
         drifts = []
-        for first, second in _paired(_rgb(before), _rgb(after)):
+        for (first, first_mask), (second, second_mask) in _paired(befores, afters):
             comfy.model_management.throw_exception_if_processing_interrupted()
-            drifts.append(measure(first, second, masker, flows, ears=ears))
+            drifts.append(measure(first, second, masker, flows, ears=ears,
+                                  before_region=_region(first_mask, "before"),
+                                  after_region=_region(second_mask, "after")))
 
         text = "\n\n".join(
             drawing.report(drift, NOISE_FLOOR,
@@ -129,6 +165,52 @@ class SameFaceMeasure(io.ComfyNode):
             _mask([drift.after_region.mask for drift in drifts]),
             json.dumps(point_table(drifts)),
         )
+
+
+class SameFaceFaceMask(io.ComfyNode):
+    @classmethod
+    def define_schema(cls):
+        return io.Schema(
+            node_id="SameFaceFaceMask",
+            display_name="SameFace Face Mask",
+            category="SameFace",
+            description=(
+                "One person's face mask, for Measure's before_mask or after_mask when "
+                "there is more than one face: the faces are counted in the order chosen, "
+                "and the one at index is masked (Grounded SAM 2, as Measure does)."),
+            search_aliases=["choose face", "which face", "multiple faces", "face select"],
+            inputs=[
+                io.Image.Input("image", tooltip="The image, or a batch of them."),
+                io.Combo.Input(
+                    "order", options=list(ORDERS), default="left to right",
+                    tooltip="How the faces are counted: left to right by the middle of "
+                            "each face, or surest first by the detector's confidence. Left "
+                            "to right stays put when two faces score nearly the same."),
+                io.Int.Input(
+                    "index", default=0, min=0, max=63,
+                    tooltip="Which face, counting from 0 in that order. Use the same "
+                            "person on the before and the after - if the edit moved "
+                            "people around, the index may differ."),
+                io.Boolean.Input(
+                    "ears", default=True,
+                    tooltip="Join the face's ears to its mask."),
+            ],
+            outputs=[
+                io.Mask.Output("mask", tooltip="The chosen face's mask, one per image."),
+                io.Int.Output("faces_found", tooltip="How many faces the detector saw "
+                                                     "(first image)."),
+            ],
+        )
+
+    @classmethod
+    def execute(cls, image, order, index, ears) -> io.NodeOutput:
+        masker, _ = _models()
+        regions = []
+        for rgb in _rgb(image):
+            comfy.model_management.throw_exception_if_processing_interrupted()
+            regions.append(masker(rgb, order=order, index=index, ears=ears))
+        return io.NodeOutput(_mask([region.mask for region in regions]),
+                             regions[0].faces_found)
 
 
 class SameFaceRepair(io.ComfyNode):
@@ -312,8 +394,8 @@ class SameFaceZones(io.ComfyNode):
 class SameFaceExtension(ComfyExtension):
     @override
     async def get_node_list(self) -> list[type[io.ComfyNode]]:
-        return [SameFaceMeasure, SameFaceRepair, SameFaceShiftMap, SameFaceView,
-                SameFaceHistogram, SameFaceZones]
+        return [SameFaceMeasure, SameFaceFaceMask, SameFaceRepair, SameFaceShiftMap,
+                SameFaceView, SameFaceHistogram, SameFaceZones]
 
 
 async def comfy_entrypoint() -> SameFaceExtension:
