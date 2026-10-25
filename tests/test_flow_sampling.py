@@ -238,3 +238,31 @@ def test_a_landmark_cloud_is_hulled_and_an_outline_is_taken_as_given():
 
     assert len(region_contour(notched, transform, convex=True)) == 4
     assert len(region_contour(notched, transform, convex=False)) == 5
+
+
+# ---------- a crop by any affine, for the second pass ----------
+
+
+def test_a_box_cut_as_an_affine_is_the_same_crop():
+    """The second pass cuts the after by an affine; for a box that affine must
+    give exactly the crop the box gives, so pass one is unchanged."""
+    from sameface.flow_sampling import box_matrix, crop_affine
+    image = np.random.default_rng(1).integers(0, 255, (300, 500, 3), np.uint8)
+    box = (50.0, 20.0, 450.0, 280.0)
+
+    by_box, _ = crop_to_working(image, box, SIZE)
+    by_affine = crop_affine(image, box_matrix(box, SIZE), SIZE)
+
+    # The same crop, up to the last bit of the inverted matrix.
+    assert np.abs(by_box.astype(int) - by_affine.astype(int)).max() <= 1
+
+
+def test_points_go_through_an_affine_and_back():
+    from sameface.flow_sampling import apply_affine, compose, invert
+    turn = np.array([[0.8, -0.6, 10.0], [0.6, 0.8, -4.0]])
+    points = np.array([[0.0, 0.0], [12.0, 5.0], [-3.0, 40.0]])
+
+    there = apply_affine(points, turn)
+
+    assert np.allclose(apply_affine(there, invert(turn)), points)
+    assert np.allclose(apply_affine(points, compose(invert(turn), turn)), points)

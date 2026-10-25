@@ -261,3 +261,66 @@ def test_the_report_says_where_each_mask_came_from():
     assert "mask before: supplied" in text
     assert "before mask is box-shaped" in text
     assert "2 faces found and the surest measured" in text
+
+
+
+# ---------- the second pass: the after lined up before the flow runs ----------
+
+
+def dis_flow(first, second):
+    """A real optical flow on the CPU, standing in for RAFT: both ways."""
+    dis = cv2.DISOpticalFlow_create(cv2.DISOPTICAL_FLOW_PRESET_MEDIUM)
+    a, b = (cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY) for frame in (first, second))
+    return (np.moveaxis(dis.calc(a, b, None), -1, 0), np.moveaxis(dis.calc(b, a, None), -1, 0))
+
+
+def turned(image, degrees, scale):
+    """`image` turned and scaled about its middle: a pure similarity."""
+    height, width = image.shape[:2]
+    matrix = cv2.getRotationMatrix2D((width / 2, height / 2), degrees, scale)
+    return cv2.warpAffine(image, matrix, (width, height), flags=cv2.INTER_CUBIC,
+                          borderMode=cv2.BORDER_REFLECT)
+
+
+def test_an_after_moved_by_a_similarity_measures_as_the_before_itself():
+    """A move, scale and turn is not drift. With one pass the flow has to
+    follow the turn and reports some of it as drift; the second pass lines
+    the after up first, so what is left is near what the same image gives."""
+    before = textured(320, 400)
+    after = turned(before, 6.0, 1.15)
+
+    still_pair = measure(before, before.copy(), oval_masker, dis_flow)
+    one = measure(before, after, oval_masker, dis_flow, passes=1)
+    two = measure(before, after, oval_masker, dis_flow)
+
+    assert two.fits["similarity"].median < one.fits["similarity"].median / 2
+    assert two.fits["similarity"].median < still_pair.fits["similarity"].median + 0.05
+    # The fit carries the after onto the before, so it undoes the move.
+    shape = two.fits["similarity"].transform
+    assert shape["scale"] == pytest.approx(1 / 1.15, rel=0.01)
+    assert abs(shape["rotation_deg"]) == pytest.approx(6.0, abs=0.2)
+
+
+def test_the_second_pass_does_not_depend_on_how_the_after_was_framed():
+    before = textured(320, 400)
+    after = turned(before, 6.0, 1.15)
+
+    as_it_is = measure(before, after, oval_masker, dis_flow)
+    lined_up = measure(before, turned(after, -6.0, 1 / 1.15), oval_masker, dis_flow)
+
+    assert as_it_is.fits["similarity"].median == pytest.approx(
+        lined_up.fits["similarity"].median, abs=0.05)
+
+
+def test_one_pass_is_the_measurement_as_it_was():
+    before = textured(320, 400)
+    calls = []
+
+    def counted(first, second):
+        calls.append(1)
+        return still(first, second)
+
+    measure(before, before.copy(), oval_masker, counted, passes=1)
+    assert len(calls) == 1
+    measure(before, before.copy(), oval_masker, counted)
+    assert len(calls) == 3

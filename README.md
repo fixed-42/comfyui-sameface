@@ -106,6 +106,11 @@ Batches: one before with any number of afters, or as many befores as afters.
    point that does not come back to where it started is left out. That
    happens where the edit rewrote texture or something covers the face. The
    rest, a few hundred matched points across the face, are measured.
+   Then a second pass: the after is cut again where a similarity fit through
+   those points puts the before's crop, turned and scaled with it, and RAFT
+   runs once more on the two faces lined up. With the first pass alone, the
+   turn and scale left between two box crops read partly as drift, so the
+   same edit measured lower once it had been moved onto the before.
 3. **Flat fit**: a similarity (move, scale, turn) and an affine (also stretch
    and slant) are fitted through the points. What each fit leaves at a point is
    the drift there, as a percentage of face size.

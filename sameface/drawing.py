@@ -98,7 +98,8 @@ def report(drift, floor, label=None):
     """The figures in words, one block per pair."""
     gaps = len(dropped(drift.record, drift.ears))
     lines = [f"SameFace drift{f' - {label}' if label else ''}",
-             f"RAFT, {len(drift.before_points)} points on the face"
+             f"RAFT{', two passes' if drift.record.passes > 1 else ''}, "
+             f"{len(drift.before_points)} points on the face"
              f"{' and ears' if drift.ears and not drift.before_region.supplied else ''}"
              f"; noise floor {floor}% of face size"]
     if gaps:

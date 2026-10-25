@@ -9,6 +9,12 @@ The steps, each in the module that owns it:
    a reframing or a move (`flow_sampling`).
 3. RAFT's flow both ways; grid points inside the before mask whose round
    trip comes back are the matched points (`flow_sampling.sample`).
+   Then a second pass: the after is cut again where a similarity fit through
+   those points puts the before's crop - turned and scaled with it - and the
+   flow runs once more. Box crops leave a turn and a little scale for RAFT to
+   follow, and it reads part of that as drift: an after merely moved onto
+   the before measured 35-45% lower than the same after as the edit framed
+   it. Lined up first, the figure no longer depends on the framing.
 4. Both sides brought into the before image's frame, a similarity and an
    affine fitted, and what each leaves at every point is the drift
    (`geometry`).
@@ -22,8 +28,9 @@ from dataclasses import dataclass, field
 import numpy as np
 
 from . import geometry
-from .flow_sampling import (box_transform, crop_points, crop_to_working, face_box,
-                            outcomes, region_contour, sample, tags, to_image_pixels)
+from .flow_sampling import (apply_affine, box_matrix, compose, crop_affine, crop_points,
+                            crop_to_working, face_box, invert, outcomes, region_contour,
+                            sample, tags)
 from .smooth_warp import render_repaired
 
 PROVIDER = "raft"
@@ -32,6 +39,8 @@ PROVIDER = "raft"
 # on a 25-pair null test (every face resampled 512 -> 1414 px, so the true
 # shift is exactly zero) under the same settings as here.
 NOISE_FLOOR = 0.05
+# Flow runs per pair: the second lines the after up with the before first.
+PASSES = 2
 # Divisible by 8, which RAFT's feature pyramid requires.
 WORKING_SIZE = 512
 # Grid step in working-frame pixels: about a thousand points over the crop.
@@ -73,10 +82,11 @@ class FlowRecord:
     points: np.ndarray          # (n, 5) origin x, y, landed x, y, round-trip error
     outcomes: list
     tags: list                  # face, ear or outside, in the before frame
-    before_box: tuple
-    after_box: tuple
+    before_map: np.ndarray      # 2x3, before working frame to before image pixels
+    after_map: np.ndarray       # 2x3, after working frame to after image pixels
     working_size: int = WORKING_SIZE
     consistency_px: float = CONSISTENCY_PX
+    passes: int = 1
 
 
 @dataclass
@@ -121,7 +131,7 @@ class Drift:
 
 def sample_flow(flows, before, after, before_region, after_region,
                 working_size=WORKING_SIZE, grid_step=GRID_STEP,
-                consistency_px=CONSISTENCY_PX):
+                consistency_px=CONSISTENCY_PX, after_map=None):
     """Crop each side to its face, run the flow both ways, tag every point.
 
     `flows(first, second)` takes two working frames and returns the forward
@@ -129,14 +139,19 @@ def sample_flow(flows, before, after, before_region, after_region,
 
     The crop takes in the face and every ear found, joined or not, so that
     "ears in" and "ears out" are the same run and only the choice of points
-    differs.
+    differs. `after_map` (2x3, working frame to after pixels) cuts the after
+    by that instead of by its own box: the second pass.
     """
-    frames, transforms, cut = {}, {}, {}
+    frames, transforms, maps = {}, {}, {}
     for side, rgb, region in (("before", before, before_region),
                               ("after", after, after_region)):
+        if side == "after" and after_map is not None:
+            frames[side], maps[side] = crop_affine(rgb, after_map, working_size), after_map
+            continue
         height, width = rgb.shape[:2]
-        cut[side] = face_box(crop_points(region.outline, region.parts), width, height)
-        frames[side], transforms[side] = crop_to_working(rgb, cut[side], working_size)
+        cut = face_box(crop_points(region.outline, region.parts), width, height)
+        frames[side], transforms[side] = crop_to_working(rgb, cut, working_size)
+        maps[side] = box_matrix(cut, working_size)
 
     # The grid lives in the *before* working frame - `sample` walks forward
     # from the before side - so the before outlines are the ones that decide
@@ -155,8 +170,9 @@ def sample_flow(flows, before, after, before_region, after_region,
         points=np.column_stack([sampled.origin, sampled.landed, sampled.error]),
         outcomes=outcomes(sampled),
         tags=tags(sampled.origin, region, face, apart),
-        before_box=cut["before"], after_box=cut["after"],
-        working_size=working_size, consistency_px=consistency_px)
+        before_map=maps["before"], after_map=maps["after"],
+        working_size=working_size, consistency_px=consistency_px,
+        passes=1 if after_map is None else 2)
 
 
 def _used(record, ears):
@@ -182,8 +198,8 @@ def chosen(record, ears=True):
         raise ValueError("no point on the face passed the flow's round-trip check; "
                          "the two images may share no recoverable correspondence")
     points = np.asarray(record.points, float)[use]
-    before = to_image_pixels(points[:, 0:2], box_transform(record.before_box, record.working_size))
-    after = to_image_pixels(points[:, 2:4], box_transform(record.after_box, record.working_size))
+    before = apply_affine(points[:, 0:2], record.before_map)
+    after = apply_affine(points[:, 2:4], record.after_map)
     confidence = 1.0 - np.clip(points[:, 4] / record.consistency_px, 0.0, 1.0)
     return after, before, confidence
 
@@ -194,7 +210,7 @@ def dropped(record, ears=True):
     use = np.array([outcome.startswith("dropped") and (tag == "face" or (tag == "ear" and ears))
                     for outcome, tag in zip(record.outcomes, record.tags)], bool)
     points = np.asarray(record.points, float)[use]
-    return to_image_pixels(points[:, 0:2], box_transform(record.before_box, record.working_size))
+    return apply_affine(points[:, 0:2], record.before_map)
 
 
 def fit_drift(after_points, before_points, mode, noise_floor=NOISE_FLOOR):
@@ -208,15 +224,23 @@ def fit_drift(after_points, before_points, mode, noise_floor=NOISE_FLOOR):
                transform=geometry.describe(matrix, after_points, before_points))
 
 
-def measure(before, after, masker, flows, ears=True, before_region=None, after_region=None):
+def measure(before, after, masker, flows, ears=True, before_region=None, after_region=None,
+            passes=PASSES):
     """Everything about one pair. `before` and `after` are uint8 RGB arrays.
 
     `masker(rgb)` returns a `Region`, and is asked only for a side whose
-    region was not given; `flows` is as `sample_flow` takes it.
+    region was not given; `flows` is as `sample_flow` takes it. `passes=1`
+    is the measurement without the second pass.
     """
     before_region = before_region if before_region is not None else masker(before)
     after_region = after_region if after_region is not None else masker(after)
     record = sample_flow(flows, before, after, before_region, after_region)
+    if passes > 1:
+        # Every kept point, ears too, so "ears in" and "ears out" stay one run.
+        after_px, before_px, _ = chosen(record, ears=True)
+        pose = geometry.fit(after_px, before_px, "similarity")
+        record = sample_flow(flows, before, after, before_region, after_region,
+                             after_map=compose(invert(pose), record.before_map))
     after_px, before_px, confidence = chosen(record, ears)
 
     # Both sides in the before image's own frame: the before points are

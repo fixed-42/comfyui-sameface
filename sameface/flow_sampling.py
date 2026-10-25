@@ -63,9 +63,48 @@ def crop_to_working(image, box, size):
     scale_x, scale_y, x0, y0 = transform = box_transform(box, size)
     matrix = np.array([[1.0 / scale_x, 0.0, -x0 / scale_x],
                        [0.0, 1.0 / scale_y, -y0 / scale_y]], dtype=np.float32)
-    warped = cv2.warpAffine(image, matrix, (size, size), flags=cv2.INTER_AREA
-                            if scale_x > 1 else cv2.INTER_LINEAR)
-    return warped, transform
+    return _warp(image, matrix, size, scale_x), transform
+
+
+def crop_affine(image, matrix, size):
+    """Resample `image` into a `size` x `size` frame by any affine `matrix`
+    (2x3, working-frame pixels to image pixels).
+
+    The second pass cuts the after this way: where the first pass's fit puts
+    the before's crop, turned and scaled with it, so the flow sees the two
+    faces lined up. For a box's matrix it is `crop_to_working`'s crop.
+    """
+    forward = np.asarray(invert(matrix), np.float32)
+    return _warp(image, forward, size, float(np.sqrt(abs(np.linalg.det(np.asarray(matrix)[:, :2])))))
+
+
+def _warp(image, forward, size, scale):
+    """`forward` takes image pixels to the frame; `scale` is image pixels per
+    frame pixel, above one when the frame is the smaller."""
+    return cv2.warpAffine(image, forward, (size, size),
+                          flags=cv2.INTER_AREA if scale > 1 else cv2.INTER_LINEAR)
+
+
+def box_matrix(box, size):
+    """The 2x3 that takes working-frame pixels to image pixels for a box crop."""
+    scale_x, scale_y, x0, y0 = box_transform(box, size)
+    return np.array([[scale_x, 0.0, x0], [0.0, scale_y, y0]])
+
+
+def apply_affine(points, matrix):
+    points = np.asarray(points, float)
+    return points @ np.asarray(matrix, float)[:, :2].T + np.asarray(matrix, float)[:, 2]
+
+
+def invert(matrix):
+    """The 2x3 that undoes `matrix`."""
+    return cv2.invertAffineTransform(np.asarray(matrix, float))
+
+
+def compose(outer, inner):
+    """The 2x3 for `inner` then `outer`."""
+    outer, inner = np.asarray(outer, float), np.asarray(inner, float)
+    return np.column_stack([outer[:, :2] @ inner[:, :2], outer[:, :2] @ inner[:, 2] + outer[:, 2]])
 
 
 def box_transform(box, size):
