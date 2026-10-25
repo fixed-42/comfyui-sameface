@@ -27,7 +27,7 @@ import numpy as np
 from scipy.spatial import Delaunay
 
 from . import geometry
-from .measure import chosen, dropped as dropped_points
+from .measure import NOISE_FLOOR, chosen, dropped as dropped_points
 from .smooth_warp import Warp, spacing_of
 
 BEFORE = (0x00, 0xe6, 0x76)
@@ -129,7 +129,7 @@ class _Marks:
 
 
 def views(drift, frame, fit="similarity", points=True, mesh=True, exaggeration=1,
-          dropped=True, floor=0.05):
+          dropped=True, floor=NOISE_FLOOR):
     """`(before_view, after_view)`, uint8 RGB, both `frame` in size.
 
     The after is moved by the `fit` alone. `dropped` marks the points that

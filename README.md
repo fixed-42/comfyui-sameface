@@ -122,9 +122,15 @@ Batches: one before with any number of afters, or as many befores as afters.
    the after by the after's own pose; in the before's, the after is first
    moved by the similarity fit.
 
-RAFT's noise floor is **0.05% of face size**: the median drift it reports on a
-pure resample, where the true drift is zero. On the shift map, grey is within that
-floor; the greens step up at 2, 5, 10 and 20 times it.
+The noise floor is **0.01% of face size**: below it, a shift cannot be told
+from the measurement's own noise. It comes from null pairs, each face resampled
+to 512 and 1414 pixels and saved as a JPEG, so the true drift is zero: twice
+their median drift (0.0033% over 25 faces), rounded up to a 1-2-5 step. On the
+shift map, grey is within that floor; the greens step up at 2, 5, 10 and 20
+times it. To measure it on your own faces, with ComfyUI's Python, from this
+folder:
+
+    python tools/calibrate_noise_floor.py <folder of face images>
 
 ## Install
 

@@ -34,11 +34,13 @@ from .flow_sampling import (apply_affine, box_matrix, compose, crop_affine, crop
 from .smooth_warp import render_repaired
 
 PROVIDER = "raft"
-# The median residual RAFT reports on a pure resample, as a percentage of face
-# size: below it, an apparent shift is the measurement's own noise. Measured
-# on a 25-pair null test (every face resampled 512 -> 1414 px, so the true
-# shift is exactly zero) under the same settings as here.
-NOISE_FLOOR = 0.05
+# Below this, as a percentage of face size, an apparent shift is the
+# measurement's own noise. Declared by `calibration.declared_floor` from
+# `tools/calibrate_noise_floor.py` on 25 null pairs (each face resampled to
+# 512 and 1414 px and saved as a JPEG, so the true shift is zero): a median of
+# 0.0033% with two passes, so 0.01%. One pass measured 0.0167%, so 0.05%.
+# Run the tool again whenever the measurement changes.
+NOISE_FLOOR = 0.01
 # Flow runs per pair: the second lines the after up with the before first.
 PASSES = 2
 # Divisible by 8, which RAFT's feature pyramid requires.
