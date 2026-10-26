@@ -16,7 +16,8 @@ import numpy as np
 import torch
 from PIL import Image
 
-from .mask_shapes import REGIONS, ears_beside, face_in, join, outline, parts, pick_face
+from .mask_shapes import (JOIN_REACH, REGIONS, ears_beside, face_in, join, outline, parts,
+                          pick_face)
 from .measure import Region
 
 # Pinned to commits, not to `main`: the weights decide the outline, and a
@@ -37,6 +38,23 @@ HEAD_PROMPT = "head."
 # is filtered by `ears_beside` and, failing that, by not touching the face.
 BOX_THRESHOLD = 0.25
 TEXT_THRESHOLD = 0.2
+# The Face Mask node's default for the faces or heads it counts, which the
+# user can change. Measure finding its own face keeps BOX_THRESHOLD, so an
+# image whose one face scores low still measures. On the family photo the
+# people score 0.58-0.77, a face on a poster 0.34-0.54, nothing else over 0.13.
+# The parts of a chosen person - the face inside a head, the ears - are found
+# by where they sit, not counted, so they keep the low threshold; the node
+# lets the user move the ears', whose scores sit right on it (0.22-0.28).
+FACE_THRESHOLD = 0.5
+
+
+def _pick(found, order, index, threshold, what="face"):
+    """`pick_face`, with the confidence in the error: it decides the count."""
+    try:
+        return pick_face(found, order, index, what)
+    except ValueError as error:
+        raise ValueError(f"{error} at confidence {threshold:g} - lower it if a {what} "
+                         f"is missed") from error
 
 
 def _devices():
@@ -102,14 +120,15 @@ class FaceMasker(_OnDemand):
     def _modules(self):
         return (self._loaded["detector"], self._loaded["segmenter"])
 
-    def detect(self, image, phrase):
-        """`(box, score)` for every place the detector saw `phrase`."""
+    def detect(self, image, phrase, threshold=BOX_THRESHOLD):
+        """`(box, score)` for every place the detector saw `phrase` with at
+        least `threshold` confidence."""
         processor = self._loaded["detect_inputs"]
         inputs = processor(images=image, text=phrase, return_tensors="pt").to(self.device)
         with torch.no_grad():
             outputs = self._loaded["detector"](**inputs)
         found = processor.post_process_grounded_object_detection(
-            outputs, inputs.input_ids, threshold=BOX_THRESHOLD,
+            outputs, inputs.input_ids, threshold=threshold,
             text_threshold=TEXT_THRESHOLD, target_sizes=[image.size[::-1]])[0]
         return [(box.tolist(), float(score))
                 for box, score in zip(found["boxes"].cpu(), found["scores"].cpu())]
@@ -125,43 +144,58 @@ class FaceMasker(_OnDemand):
             outputs.pred_masks.cpu(), inputs["original_sizes"])[0]
         return (masks[0, 0].numpy() > 0).astype(np.uint8)
 
-    def __call__(self, rgb, order="surest", index=0, ears=True, region="face"):
-        """The face at `index` in `order` (`mask_shapes.ORDERS`), with its
-        ears joined unless `ears` is False - or, with `region="head"`, the
-        head at `index`, which takes the ears in with it."""
+    def __call__(self, rgb, order="surest", index=0, ears=True, region="face",
+                 threshold=BOX_THRESHOLD, gap=JOIN_REACH, ear_threshold=BOX_THRESHOLD):
+        """The face at `index` in `order` (`mask_shapes.ORDERS`) - or, with
+        `region="head"`, the head at `index` - with its ears joined unless
+        `ears` is False. Faces and heads scoring below `threshold` are not
+        counted, ears below `ear_threshold` not found; ears and hair up to
+        `gap` (a share of the face's diagonal) away from the face are joined."""
         if region not in REGIONS:
             raise ValueError(f"unknown region {region!r}: one of {', '.join(REGIONS)}")
         if region == "head":
-            return self._head(rgb, order, index)
+            return self._head(rgb, order, index, ears, threshold, gap, ear_threshold)
         with self:
             pil = Image.fromarray(rgb)
-            faces = self.detect(pil, FACE_PROMPT)
-            box, score = pick_face(faces, order, index)
-            ears = ears_beside(box, self.detect(pil, EAR_PROMPT)) if ears else []
+            faces = self.detect(pil, FACE_PROMPT, threshold)
+            box, score = _pick(faces, order, index, threshold)
             face_mask = self.segment(rgb, box)
-            ear_masks = [self.segment(rgb, ear) for ear, _ in ears]
-        mask, kept = join(face_mask, ear_masks)
+            ears = self._ears(pil, rgb, box, ear_threshold) if ears else []
+        mask, kept = join(face_mask, ears, gap)
         return Region(mask=mask, outline=outline(mask),
-                      parts=parts(face_mask, ear_masks, mask),
+                      parts=parts(face_mask, ears, mask),
                       face_score=score, faces_found=len(faces),
                       ears_found=len(ears), ears_joined=int(sum(kept)))
 
+    def _ears(self, pil, rgb, face_box, threshold):
+        """The masks of the ears beside `face_box`."""
+        found = ears_beside(face_box, self.detect(pil, EAR_PROMPT, threshold))
+        return [self.segment(rgb, ear) for ear, _ in found]
 
-    def _head(self, rgb, order, index):
+    def _head(self, rgb, order, index, ears, threshold, gap, ear_threshold):
         """The head at `index`: SAM 2 asked for a head box outlines the hair,
-        so the face inside that box is segmented too and the two joined."""
+        and an ear only when it happens to, so the face inside that box and
+        the ears beside it are segmented too and all joined - the hair across
+        a gap of up to `gap`, or it is an error rather than a head mask that
+        is quietly only a face."""
         with self:
             pil = Image.fromarray(rgb)
-            heads = self.detect(pil, HEAD_PROMPT)
-            box, score = pick_face(heads, order, index, "head")
+            heads = self.detect(pil, HEAD_PROMPT, threshold)
+            box, score = _pick(heads, order, index, threshold, "head")
+            # Found by where it is, inside the head already chosen.
             face = face_in(box, self.detect(pil, FACE_PROMPT))
             if face is None:
                 raise ValueError(f"head {index} ({order}) has no face inside it")
             hair = self.segment(rgb, box)
             face_mask = self.segment(rgb, face[0])
-        mask, _ = join(hair | face_mask, [])
+            ears = self._ears(pil, rgb, face[0], ear_threshold) if ears else []
+        mask, kept = join(face_mask, [hair, *ears], gap)
+        if not kept[0]:
+            raise ValueError(f"head {index} ({order}): the hair does not reach the face "
+                             f"across a gap of {gap * 100:g}% - widen gap")
         return Region(mask=mask, outline=outline(mask), parts=parts(mask, [], mask),
-                      face_score=score, faces_found=len(heads))
+                      face_score=score, faces_found=len(heads),
+                      ears_found=len(ears), ears_joined=int(sum(kept[1:])))
 
 
 class Flow(_OnDemand):

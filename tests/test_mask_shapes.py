@@ -141,6 +141,28 @@ def test_an_ear_well_clear_of_the_face_is_left_out_and_reported():
     assert mask[200, 350] == 0 and mask[200, 150] == 1
 
 
+def test_a_wider_reach_joins_what_the_default_leaves_out():
+    face, ear = disc(SHAPE, 150, 200, 80), disc(SHAPE, 260, 200, 20)     # 10px gap
+    assert join(face, [ear], reach=0.0)[1] == [False]
+
+    mask, kept = join(face, [ear], reach=0.1)
+
+    assert kept == [True] and mask[200, 260] == 1
+
+
+def test_hair_larger_than_the_face_and_apart_from_it_does_not_win():
+    """A head mask is the face joined to the hair. Keeping the largest piece
+    would hand back the hair alone when the two do not meet."""
+    face = disc(SHAPE, 200, 260, 60)
+    hair = np.zeros(SHAPE, np.uint8)
+    hair[20:180, 60:340] = 1                                          # 20px above
+
+    mask, kept = join(face, [hair], reach=0.0)
+
+    assert kept == [False]
+    assert mask[260, 200] == 1 and mask[100, 200] == 0
+
+
 def test_the_result_is_one_region_with_no_holes():
     face = disc(SHAPE, 200, 200, 100)
     face[190:210, 190:210] = 0                      # a hole, as a nostril might leave
