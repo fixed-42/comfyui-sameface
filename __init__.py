@@ -4,4 +4,6 @@
 if __package__:
     from .nodes import comfy_entrypoint
 
-    __all__ = ["comfy_entrypoint"]
+    # SameFace Simple's figures box on the node.
+    WEB_DIRECTORY = "./web"
+    __all__ = ["comfy_entrypoint", "WEB_DIRECTORY"]

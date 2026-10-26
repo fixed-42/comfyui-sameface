@@ -102,6 +102,34 @@ def _tick_step(top, most=6):
 def drift_histogram(drift, floor, size=(1200, 600), bins=40):
     """How many points drifted how far, after each fit, with the noise floor
     and each fit's median marked. RGB uint8; `size` is (width, height)."""
+    fits = drift.fits
+    return _histogram(
+        [(fits["similarity"].residuals, fits["similarity"].median, SERIES["similarity"],
+          f"similarity fit: bars, median {fits['similarity'].median:.3f}%"),
+         (fits["affine"].residuals, fits["affine"].median, SERIES["affine"],
+          f"affine fit: outline, median {fits['affine'].median:.3f}%")],
+        floor, f"drift per point, % of face size ({len(fits['similarity'].residuals)} points)",
+        size, bins)
+
+
+def repair_histogram(drift, mode, floor, repaired=None, size=(1200, 600), bins=40):
+    """The edit's drift after the `mode` fit as bars and, given `repaired`,
+    the repair's after the same fit as an outline over them: the one further
+    left drifted less."""
+    edit = drift.fits[mode]
+    series = [(edit.residuals, edit.median, SERIES["similarity"],
+               f"the edit: bars, median {edit.median:.3f}%")]
+    if repaired is not None:
+        fixed = repaired.fits[mode]
+        series.append((fixed.residuals, fixed.median, SERIES["affine"],
+                       f"after repair: outline, median {fixed.median:.3f}%"))
+    return _histogram(series, floor, "drift per point, % of face size", size, bins)
+
+
+def _histogram(series, floor, title, size, bins):
+    """The first of `series` as filled bars, a second as an outline over them,
+    so both stay readable where they overlap; each `(residuals, median,
+    colour, label)`, its median marked in its colour."""
     width, height = size
     image = np.empty((height, width, 3), np.uint8)
     image[...] = BACKGROUND
@@ -113,12 +141,11 @@ def drift_histogram(drift, floor, size=(1200, 600), bins=40):
     plot_w, plot_h = width - left - right, height - top - bottom
     base = top + plot_h
 
-    values = {mode: np.asarray(drift.fits[mode].residuals, float) for mode in FITS}
-    reach = max(max(np.percentile(each, 99) for each in values.values()), 3 * floor) * 1.05
+    values = [np.asarray(residuals, float) for residuals, *_ in series]
+    reach = max(max(np.percentile(each, 99) for each in values), 3 * floor) * 1.05
     edges = np.linspace(0.0, reach, bins + 1)
-    counts = {mode: np.histogram(np.clip(each, 0, reach), edges)[0]
-              for mode, each in values.items()}
-    tallest = max(max(each.max() for each in counts.values()), 1) * 1.1
+    counts = [np.histogram(np.clip(each, 0, reach), edges)[0] for each in values]
+    tallest = max(max(each.max() for each in counts), 1) * 1.1
 
     def x_of(value):
         return int(round(left + plot_w * min(value, reach) / reach))
@@ -133,35 +160,31 @@ def drift_histogram(drift, floor, size=(1200, 600), bins=40):
     for tick in np.arange(0, tallest, _tick_step(tallest)):
         _text(image, f"{int(tick)}", (left - 8, y_of(tick) + 5 * scale), small, INK, weight, "right")
 
-    # Similarity as filled bars, affine as an outline over them, so both
-    # stay readable where they overlap.
-    for i, count in enumerate(counts["similarity"]):
+    for i, count in enumerate(counts[0]):
         if count:
             cv2.rectangle(image, (x_of(edges[i]) + 1, y_of(count)), (x_of(edges[i + 1]) - 1, base),
-                          SERIES["similarity"], -1)
-    outline = []
-    for i, count in enumerate(counts["affine"]):
-        outline += [(x_of(edges[i]), y_of(count)), (x_of(edges[i + 1]), y_of(count))]
-    outline = [(x_of(0), base)] + outline + [(x_of(edges[-1]), base)]
-    cv2.polylines(image, [np.array(outline, np.int32)], False, SERIES["affine"], weight + 1,
-                  cv2.LINE_AA)
+                          series[0][2], -1)
+    if len(series) > 1:
+        outline = []
+        for i, count in enumerate(counts[1]):
+            outline += [(x_of(edges[i]), y_of(count)), (x_of(edges[i + 1]), y_of(count))]
+        outline = [(x_of(0), base)] + outline + [(x_of(edges[-1]), base)]
+        cv2.polylines(image, [np.array(outline, np.int32)], False, series[1][2], weight + 1,
+                      cv2.LINE_AA)
 
-    for mode in FITS:
-        x = x_of(drift.fits[mode].median)
-        cv2.line(image, (x, top), (x, base), SERIES[mode], weight)
+    for _, median, colour, _ in series:
+        x = x_of(median)
+        cv2.line(image, (x, top), (x, base), colour, weight)
     dash = max(6, int(10 * scale))
     x = x_of(floor)
     for y in range(top, base, 2 * dash):
         cv2.line(image, (x, y), (x, min(y + dash, base)), FLOOR_LINE, weight)
     cv2.line(image, (left, base), (left + plot_w, base), INK, weight)
 
-    _text(image, f"drift per point, % of face size ({len(values['similarity'])} points)",
-          (left, int(0.06 * height)), normal, INK, weight)
+    _text(image, title, (left, int(0.06 * height)), normal, INK, weight)
     line = int(0.06 * height) + int(28 * scale)
-    _text(image, f"similarity fit: bars, median {drift.fits['similarity'].median:.3f}%",
-          (left, line), small, SERIES["similarity"], weight)
-    _text(image, f"affine fit: outline, median {drift.fits['affine'].median:.3f}%",
-          (left + plot_w // 2 - int(60 * scale), line), small, SERIES["affine"], weight)
+    for (_, _, colour, label), x in zip(series, (left, left + plot_w // 2 - int(60 * scale))):
+        _text(image, label, (x, line), small, colour, weight)
     _text(image, f"dashed: noise floor {floor:g}%", (left + plot_w, line), small,
           FLOOR_LINE, weight, "right")
     _text(image, "points", (left - 8, top - int(10 * scale)), small, INK, weight, "right")

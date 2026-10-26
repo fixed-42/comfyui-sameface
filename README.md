@@ -9,8 +9,29 @@ same person. SameFace measures that drift and repairs it.
 
 ## Nodes
 
-Measure runs the models and gives the figures. Every picture is drawn by a
-node of its own from Measure's `drift`, and runs no models.
+**SameFace Simple** is the one to start with: `before` + `after` (+ `repair`,
+on by default) →
+- `before_view`, `after_view`: into Compare Images for a slider, the measured
+  points on both and arrows ten times their length
+- `repaired`: the after with its face moved back
+- `shift_map`: where on the face it drifted
+- `histogram`: how far the points drifted, the edit as bars and the repair as
+  an outline - the one further left drifted less
+- `median`, `repaired_median`: the figures, % of face size - also shown on
+  the node after a run
+
+It measures the after against the before, repairs it at full strength, and
+measures the repair against the before. The repair keeps the after's own
+framing and size: only the face's features move, to where the before has
+them. Simple picks the fit by itself: whichever of similarity and affine
+(below) leaves the smaller median on the edit, and the repair's figure uses
+the same one so the two compare. Its figures are the same as Measure's for
+the same pair. It measures the surest face on each side and says on the node
+when there was more than one; to choose a person, use Face Mask with Measure.
+
+The rest are the advanced nodes, each step with every setting. Measure runs
+the models and gives the figures. Every picture is drawn by a node of its own
+from Measure's `drift`, and runs no models.
 
 **SameFace Measure**: `before` + `after` (+ `before_mask`, `after_mask`,
 optional) →
@@ -179,7 +200,8 @@ and after into the two Load Image nodes.
 ## Tests
 
 Everything but the models themselves is tested without a GPU - the masks,
-the sampling, the fits, the warp, the pictures and the noise floor's rule:
+the sampling, the fits, the warp, the pictures, Simple and the noise floor's
+rule:
 
 ```
 python -m pytest
