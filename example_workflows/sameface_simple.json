@@ -1,7 +1,7 @@
 {
   "id": "82dca13c-f04c-4e11-a445-b39d07f50d68",
   "revision": 0,
-  "last_node_id": 13,
+  "last_node_id": 14,
   "last_link_id": 25,
   "nodes": [
     {
@@ -61,11 +61,11 @@
         "Node name for S&R": "LoadImage"
       },
       "widgets_values": [
-        "before.png",
+        "lincoln_before.png",
         "image"
       ],
       "widgets_values_named": {
-        "image": "before.png",
+        "image": "lincoln_before.png",
         "upload": "image"
       },
       "title": "Before"
@@ -126,11 +126,11 @@
         "Node name for S&R": "LoadImage"
       },
       "widgets_values": [
-        "after.png",
+        "lincoln_after.png",
         "image"
       ],
       "widgets_values_named": {
-        "image": "after.png",
+        "image": "lincoln_after.png",
         "upload": "image"
       },
       "title": "After (the edit)"
@@ -547,6 +547,30 @@
         "Node name for S&R": "PreviewImage"
       },
       "title": "Histogram: the repair"
+    },
+    {
+      "id": 14,
+      "type": "MarkdownNote",
+      "pos": [
+        -90.29369980769718,
+        -175.45238375385813
+      ],
+      "size": [
+        440,
+        460
+      ],
+      "flags": {},
+      "order": 9,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "title": "Read me",
+      "properties": {},
+      "widgets_values": [
+        "## SameFace Simple\n\nHow far an edit moved the face, and the face moved back. Lincoln's 1863\nportrait (Library of Congress, public domain), restored and colourised.\n\n**Try it:** copy the two pictures in `custom_nodes/comfyui-sameface/example_workflows/input/` into `ComfyUI/input/`, or drag each onto its Load Image, then run. The models download on the first run, about 1.8 GB.\n\n- The first **SameFace Simple** measures the edit against the before and\n  repairs it. The figures show on the node, in % of face size: the edit's\n  drift, and what the repair left.\n- The second measures the repair against the before, for the second slider.\n- Below the noise floor, **0.01%**, a shift can't be told from the\n  measurement's own noise.\n\n**A slider is blank?** The built-in Compare Images needs **Modern Node Design (Nodes 2.0)** on: Settings \u2192 Comfy \u2192 Nodes 2.0. Or use **Image Comparer (rgthree)** in its place.\n"
+      ],
+      "color": "#432",
+      "bgcolor": "#653"
     }
   ],
   "links": [

@@ -30,10 +30,16 @@ floor, so what is left cannot be told from the measurement's own noise.*
 ## Quick start
 
 1. Install (below) and restart ComfyUI.
-2. Open `example_workflows/sameface_simple.json`.
-3. Load your original into **Before** and the edited picture into **After**,
-   and run. The first Simple measures and repairs; the second measures the
-   repair, for a slider of what is left.
+2. Open `example_workflows/sameface_simple.json`, and copy the two Lincoln
+   pictures from `example_workflows/input/` into `ComfyUI/input/`.
+3. Run. The first Simple measures and repairs; the second measures the
+   repair, for a slider of what is left. Then load your own original into
+   **Before** and the edited picture into **After**.
+
+The sliders are ComfyUI's Compare Images, which shows its slider with
+**Modern Node Design (Nodes 2.0)** turned on (Settings → Comfy → Nodes 2.0);
+rgthree's Image Comparer works in its place. Each example has a note saying
+so.
 
 **SameFace Simple** shows the figures on the node and gives:
 
@@ -58,8 +64,8 @@ Every step on its own node with all its settings, for choosing one face among
 several, measuring the whole head, or drawing your own plots. All are in
 **[The nodes](docs/nodes.md)**.
 
-`example_workflows/sameface_advanced.json` is a family photo edited onto a
-museum backdrop: Face Mask chooses the mother's head on each side, Measure
+`example_workflows/sameface_advanced.json`, with its two pictures in
+`example_workflows/input/`, is a family photo edited onto a museum backdrop: Face Mask chooses the mother's head on each side, Measure
 measures it, Repair moves it back, and a second Measure measures the repair -
 0.211% to 0.019% after the affine fit - with a view, a shift map and a
 histogram of each.
