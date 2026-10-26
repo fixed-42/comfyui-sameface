@@ -30,7 +30,7 @@ or give one per image; a mask must be its image's size. A box-shaped mask (a
 detector's bounding box) is measured, and the report warns that hair and
 background inside it count as face.
 
-**SameFace Face Mask**: `image` + `region`, `order`, `index`, `ears` → `mask`, `faces_found`
+**SameFace Face Mask**: `image` + `region`, `order`, `index`, `ears`, `confidence`, `gap`, `ear_confidence` → `mask`, `faces_found`
 
 One person's face when there are several: the faces are counted `left to
 right` (by the middle of each face) or `surest` first, and the one at `index`,
@@ -39,6 +39,29 @@ from 0, is masked. Wire one into each of Measure's `before_mask` and
 default because it stays put when two faces score nearly the same, which
 `surest` does not; if the edit moved people around, the index can differ
 between the sides. `faces_found` says how many there were.
+
+`confidence` (default 0.5) is the detector score a face or head needs to be
+counted. On one family photo the people score 0.58 to 0.77, a face on
+a poster behind them 0.34 to 0.54, and nothing else above 0.13. Raise it to
+leave out a face you don't want counted, lower it for one that is missed.
+Mind that the same face can score differently on the two sides - the poster
+scores 0.43 in the source and 0.54 in the edit, so at 0.5 it is counted in one
+and not the other, and every index after it shifts. Compare `faces_found` on
+both sides. Measure finding its own face (no mask wired) keeps 0.25.
+
+Only what is counted - the faces, or the heads - uses `confidence`. The parts
+of the person chosen are found by where they sit: the face inside a head at
+0.25, and the ears beside the face at `ear_confidence` (default 0.25). Ears
+score low, 0.22 to 0.28 on that photo, so lower it a little if one is
+missed; a false ear is taken only if it sits beside the face, is much smaller
+than it and joins it across the gap.
+
+`gap` (default 4, in % of the face's diagonal) is how far apart the face and
+its ears, or the face and its hair, may be and still be joined into one mask.
+Widen it when a head mask stops at the hairline. Hair further off than the
+gap is an error rather than a head mask that is only a face. Closing a gap
+also fills notches in the outline narrower than it, so keep it no wider than
+it needs to be.
 
 `region` `head` masks the whole head, hair included, so the head's shape is
 measured as well as the face. Use it only when the edit left the hair alone:
@@ -161,6 +184,10 @@ the sampling, the fits, the warp, the pictures and the noise floor's rule:
 ```
 python -m pytest
 ```
+
+`tests/test_models.py` checks which detections the face masker counts, with
+the models stood in for; it needs torch, so it is skipped without it. Run it
+with ComfyUI's own Python to include it.
 
 ## Licence
 

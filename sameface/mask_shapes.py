@@ -25,9 +25,10 @@ ORDERS = ("surest", "left to right")
 # for an edit that left the hair alone, so the head's shape is measured too.
 REGIONS = ("face", "head")
 
-# How far apart an ear and the face may be and still be joined, as a share of
-# the face mask's diagonal. Two masks cut separately seldom meet exactly;
-# this bridges a hairline gap without reaching across a cheek.
+# How far apart an ear (or the hair) and the face may be and still be joined,
+# as a share of the face mask's diagonal. Two masks cut separately seldom meet
+# exactly; this bridges a hairline gap without reaching across a cheek. The
+# Face Mask node lets the user widen it: hair often sits further off.
 JOIN_REACH = 0.04
 # Douglas-Peucker tolerance as a share of the perimeter: tens of vertices
 # rather than thousands, with the notches still in.
@@ -96,6 +97,17 @@ def _largest(mask):
     return (labels == 1 + int(np.argmax(stats[1:, cv2.CC_STAT_AREA]))).astype(np.uint8)
 
 
+def _containing(mask, face):
+    """The piece of `mask` holding the most of `face`: hair larger than the
+    face, left apart from it, must not win just by being larger."""
+    count, labels = cv2.connectedComponents(mask, connectivity=8)
+    if count <= 2:
+        return mask
+    inside = np.bincount(labels[face > 0], minlength=count)
+    inside[0] = 0
+    return (labels == int(np.argmax(inside))).astype(np.uint8)
+
+
 def _filled(mask):
     contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     filled = np.zeros_like(mask)
@@ -120,7 +132,7 @@ def join(face, ears, reach=JOIN_REACH):
     ys, xs = np.nonzero(face)
     diagonal = float(np.hypot(np.ptp(xs) + 1, np.ptp(ys) + 1)) if len(xs) else 0.0
     bridged = cv2.morphologyEx(both, cv2.MORPH_CLOSE, _ellipse(diagonal * reach))
-    region = _largest(bridged)
+    region = _containing(bridged, face)
     kept = [bool((region & np.asarray(ear, np.uint8)).any()) for ear in ears]
     return _filled(region), kept
 

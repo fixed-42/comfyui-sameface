@@ -31,9 +31,9 @@ from comfy_api.latest import ComfyExtension, io
 from .sameface import drawing
 from .sameface.drawing import MAP_STEPS, parse_steps
 from .sameface.geometry import FITS
-from .sameface.mask_shapes import ORDERS, REGIONS
+from .sameface.mask_shapes import JOIN_REACH, ORDERS, REGIONS
 from .sameface.measure import FRAMINGS, NOISE_FLOOR, measure, repair, repair_frame
-from .sameface.models import FaceMasker, Flow
+from .sameface.models import BOX_THRESHOLD, FACE_THRESHOLD, FaceMasker, Flow
 from .sameface.plots import drift_histogram, drift_zones, point_table, same_size
 from .sameface.regions import masks_for, region_from_mask
 from .sameface.views import EXAGGERATIONS, views
@@ -196,7 +196,7 @@ class SameFaceFaceMask(io.ComfyNode):
                 io.Image.Input("image", tooltip="The image, or a batch of them."),
                 io.Combo.Input(
                     "region", options=list(REGIONS), default="face",
-                    tooltip="The face (and its ears), or the whole head, hair included. "
+                    tooltip="The face (and its ears), or the whole head, hair and ears included. "
                             "Measure the head only when the edit left the hair alone: "
                             "hair the edit changed reads as drift. Hair also measures "
                             "noisier than skin, and the noise floor in the report was "
@@ -213,24 +213,54 @@ class SameFaceFaceMask(io.ComfyNode):
                             "people around, the index may differ."),
                 io.Boolean.Input(
                     "ears", default=True,
-                    tooltip="Join the face's ears to its mask. A head has its ears "
-                            "already, so this does nothing there."),
+                    tooltip="Look for the ears beside the face and join them to the "
+                            "mask, face or head. Without this a head has its ears only "
+                            "where its hair outline happens to cover them, which can "
+                            "differ between the before and the after."),
+                io.Float.Input(
+                    "confidence", default=FACE_THRESHOLD, min=0.05, max=0.95, step=0.05,
+                    tooltip="The detector's score a face or head needs to be counted, 0 "
+                            "to 1. Real faces usually score 0.55 or more; a face in a "
+                            "picture on the wall can score 0.3 to 0.55. Raise it to drop "
+                            "a face you don't want counted, lower it for one that is "
+                            "missed. It changes the index of everyone after it, and the "
+                            "same face can score differently in the before and the after "
+                            "- check faces_found on both sides. A head's face and ears "
+                            "are found by where they sit, so this does not affect them."),
+                io.Int.Input(
+                    "gap", default=round(JOIN_REACH * 100), min=0, max=25, step=1,
+                    tooltip="How wide a gap between the face and its ears, or the face "
+                            "and its hair, is bridged, in % of the face's diagonal. "
+                            "Widen it when a head mask stops at the hairline; a head "
+                            "whose hair is further off is an error, not a face alone. "
+                            "It also fills notches in the edge narrower than the gap."),
+                io.Float.Input(
+                    "ear_confidence", default=BOX_THRESHOLD, min=0.05, max=0.95, step=0.01,
+                    tooltip="The detector's score an ear needs to be found. Ears score "
+                            "low, often 0.2 to 0.3, so lower this a little if an ear is "
+                            "missed. A false ear is mostly harmless: only one beside the "
+                            "face, and much smaller than it, is taken, and only if it "
+                            "joins the face across the gap."),
             ],
             outputs=[
                 io.Mask.Output("mask", tooltip="The chosen face's or head's mask, one "
                                                "per image."),
                 io.Int.Output("faces_found", tooltip="How many faces (or heads) the "
-                                                     "detector saw (first image)."),
+                                                     "detector saw at this confidence "
+                                                     "(first image)."),
             ],
         )
 
     @classmethod
-    def execute(cls, image, region, order, index, ears) -> io.NodeOutput:
+    def execute(cls, image, region, order, index, ears, confidence, gap,
+                ear_confidence) -> io.NodeOutput:
         masker, _ = _models()
         regions = []
         for rgb in _rgb(image):
             comfy.model_management.throw_exception_if_processing_interrupted()
-            regions.append(masker(rgb, order=order, index=index, ears=ears, region=region))
+            regions.append(masker(rgb, order=order, index=index, ears=ears, region=region,
+                                  threshold=confidence, gap=gap / 100,
+                                  ear_threshold=ear_confidence))
         return io.NodeOutput(_mask([region.mask for region in regions]),
                              regions[0].faces_found)
 
