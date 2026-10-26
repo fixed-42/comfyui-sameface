@@ -1,5 +1,9 @@
-"""The ComfyUI nodes: SameFace Measure, Face Mask, Repair, Shift Map, View,
-Drift Histogram and Drift Zones.
+"""The ComfyUI nodes: SameFace Simple, and the advanced ones - Measure, Face
+Mask, Repair, Shift Map, View, Drift Histogram and Drift Zones.
+
+Simple is the advanced nodes at the pack's defaults in one: a before and an
+after in, the slider views, the repaired after, a map, a histogram and the
+figures out. See `sameface/simple.py` for what it decides by itself.
 
 Measure takes a before and an after and says how far the edit moved the face,
 in figures; every picture of it is drawn by a node of its own from Measure's
@@ -26,7 +30,7 @@ import torch
 from typing_extensions import override
 
 import comfy.model_management
-from comfy_api.latest import ComfyExtension, io
+from comfy_api.latest import ComfyExtension, io, ui
 
 from .sameface import drawing
 from .sameface.drawing import MAP_STEPS, parse_steps
@@ -34,8 +38,11 @@ from .sameface.geometry import FITS
 from .sameface.mask_shapes import JOIN_REACH, ORDERS, REGIONS
 from .sameface.measure import FRAMINGS, NOISE_FLOOR, measure, repair, repair_frame
 from .sameface.models import BOX_THRESHOLD, FACE_THRESHOLD, FaceMasker, Flow
-from .sameface.plots import drift_histogram, drift_zones, point_table, same_size
+from .sameface.plots import (drift_histogram, drift_zones, point_table, repair_histogram,
+                             same_size)
 from .sameface.regions import masks_for, region_from_mask
+from .sameface.simple import EXAGGERATION, simple
+from .sameface.simple import report as simple_report
 from .sameface.views import EXAGGERATIONS, views
 
 Drift = io.Custom("SAMEFACE_DRIFT")
@@ -448,11 +455,87 @@ class SameFaceZones(io.ComfyNode):
                                                for each in drift])))
 
 
+class SameFaceSimple(io.ComfyNode):
+    @classmethod
+    def define_schema(cls):
+        return io.Schema(
+            node_id="SameFaceSimple",
+            display_name="SameFace Simple",
+            category="SameFace",
+            description=(
+                "How far an edit moved the face, and the face moved back: measures the "
+                "after against the before, repairs it, and measures the repair. Gives the "
+                "before and after views for Compare Images, the repaired image, a map of "
+                "where the face drifted and a histogram of the edit against the repair, "
+                "and shows the figures on the node. It measures the surest face; for one "
+                "of several people, and every setting, use the advanced SameFace nodes."),
+            search_aliases=["identity drift", "face shift", "face restore", "fix face shift",
+                            "face consistency"],
+            inputs=[
+                io.Image.Input("before", tooltip="The image before the edit."),
+                io.Image.Input("after", tooltip="The edited image, or a batch of them."),
+                io.Boolean.Input(
+                    "repair", default=True,
+                    tooltip="Move the face back to where the before has it, and measure "
+                            "the result. Off, Simple only measures, and repaired is the "
+                            "after unchanged."),
+            ],
+            outputs=[
+                io.Image.Output("before_view", tooltip="The before with the measured "
+                                                       "points: into Compare Images."),
+                io.Image.Output("after_view", tooltip="The after lined up on the before, "
+                                                      "with arrows to where each point "
+                                                      "should be (ten times longer)."),
+                io.Image.Output("repaired", tooltip="The after with its face moved back."),
+                io.Image.Output("shift_map", tooltip="Where the face drifted: grey within "
+                                                     "the noise, darker green for more."),
+                io.Image.Output("histogram", tooltip="How far the points drifted, the edit "
+                                                     "as bars and the repair as an outline: "
+                                                     "the one further left drifted less."),
+                io.Float.Output("median", tooltip="The edit's median drift, % of face size "
+                                                  "(first pair)."),
+                io.Float.Output("repaired_median", tooltip="The repair's, the same way; "
+                                                           "the edit's if repair is off."),
+            ],
+        )
+
+    @classmethod
+    def execute(cls, before, after, repair) -> io.NodeOutput:
+        masker, flows = _models()
+        pairs, results = _paired(_rgb(before), _rgb(after)), []
+        for first, second in pairs:
+            comfy.model_management.throw_exception_if_processing_interrupted()
+            results.append(simple(first, second, masker, flows, fix=repair))
+
+        frame = _shared_frame([result.drift for result in results])
+        befores_view, afters_view = [], []
+        for result in results:
+            first, second = views(result.drift, frame, fit=result.fit, mesh=False,
+                                  exaggeration=EXAGGERATION, dropped=False, floor=NOISE_FLOOR)
+            befores_view.append(first)
+            afters_view.append(second)
+        repaired = [result.repaired if result.repaired is not None else pair[1]
+                    for result, pair in zip(results, pairs)]
+        maps = same_size([drawing.shift_map(result.drift, result.fit, NOISE_FLOOR)
+                          for result in results])
+        histograms = [repair_histogram(result.drift, result.fit, NOISE_FLOOR,
+                                       result.repaired_drift) for result in results]
+        text = "\n\n".join(
+            simple_report(result, f"pair {number} of {len(results)}" if len(results) > 1 else None)
+            for number, result in enumerate(results, 1))
+        first = results[0]
+        return io.NodeOutput(
+            _image(befores_view), _image(afters_view), _image(repaired), _image(maps),
+            _image(histograms), first.median,
+            first.repaired_median if first.repaired_median is not None else first.median,
+            ui=ui.PreviewText(text))
+
+
 class SameFaceExtension(ComfyExtension):
     @override
     async def get_node_list(self) -> list[type[io.ComfyNode]]:
-        return [SameFaceMeasure, SameFaceFaceMask, SameFaceRepair, SameFaceShiftMap,
-                SameFaceView, SameFaceHistogram, SameFaceZones]
+        return [SameFaceSimple, SameFaceMeasure, SameFaceFaceMask, SameFaceRepair,
+                SameFaceShiftMap, SameFaceView, SameFaceHistogram, SameFaceZones]
 
 
 async def comfy_entrypoint() -> SameFaceExtension:

@@ -1,0 +1,656 @@
+{
+  "id": "82dca13c-f04c-4e11-a445-b39d07f50d68",
+  "revision": 0,
+  "last_node_id": 13,
+  "last_link_id": 25,
+  "nodes": [
+    {
+      "id": 2,
+      "type": "LoadImage",
+      "pos": [
+        391.2089297941061,
+        248.20699885020858
+      ],
+      "size": [
+        282.83333587646484,
+        102
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "image",
+          "name": "image",
+          "type": "COMBO",
+          "widget": {
+            "name": "image"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "choose file to upload",
+          "name": "upload",
+          "type": "IMAGEUPLOAD",
+          "widget": {
+            "name": "upload"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "IMAGE",
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            13,
+            21
+          ]
+        },
+        {
+          "localized_name": "MASK",
+          "name": "MASK",
+          "type": "MASK",
+          "links": null
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.42.5",
+        "Node name for S&R": "LoadImage"
+      },
+      "widgets_values": [
+        "before.png",
+        "image"
+      ],
+      "widgets_values_named": {
+        "image": "before.png",
+        "upload": "image"
+      },
+      "title": "Before"
+    },
+    {
+      "id": 3,
+      "type": "LoadImage",
+      "pos": [
+        389.7063001923028,
+        622.3617696991944
+      ],
+      "size": [
+        282.83333587646484,
+        102
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "image",
+          "name": "image",
+          "type": "COMBO",
+          "widget": {
+            "name": "image"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "choose file to upload",
+          "name": "upload",
+          "type": "IMAGEUPLOAD",
+          "widget": {
+            "name": "upload"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "IMAGE",
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            14
+          ]
+        },
+        {
+          "localized_name": "MASK",
+          "name": "MASK",
+          "type": "MASK",
+          "links": null
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.42.5",
+        "Node name for S&R": "LoadImage"
+      },
+      "widgets_values": [
+        "after.png",
+        "image"
+      ],
+      "widgets_values_named": {
+        "image": "after.png",
+        "upload": "image"
+      },
+      "title": "After (the edit)"
+    },
+    {
+      "id": 4,
+      "type": "PreviewImage",
+      "pos": [
+        1153.6594068983795,
+        626.1694331101635
+      ],
+      "size": [
+        140,
+        26
+      ],
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "images",
+          "name": "images",
+          "type": "IMAGE",
+          "link": 18
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "images",
+          "name": "images",
+          "type": "IMAGE",
+          "links": null
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.42.5",
+        "Node name for S&R": "PreviewImage"
+      },
+      "title": "Histogram: edit and repair"
+    },
+    {
+      "id": 5,
+      "type": "PreviewImage",
+      "pos": [
+        824.2408438345059,
+        624.7222517825094
+      ],
+      "size": [
+        140,
+        26
+      ],
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "images",
+          "name": "images",
+          "type": "IMAGE",
+          "link": 17
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "images",
+          "name": "images",
+          "type": "IMAGE",
+          "links": null
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.42.5",
+        "Node name for S&R": "PreviewImage"
+      },
+      "title": "Shift map: the edit"
+    },
+    {
+      "id": 8,
+      "type": "ImageCompare",
+      "pos": [
+        1611.5481752005578,
+        -175.45238375385813
+      ],
+      "size": [
+        719.5962895990465,
+        735.8458203000001
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "image_a",
+          "name": "image_a",
+          "shape": 7,
+          "type": "IMAGE",
+          "link": 15
+        },
+        {
+          "localized_name": "image_b",
+          "name": "image_b",
+          "shape": 7,
+          "type": "IMAGE",
+          "link": 16
+        },
+        {
+          "localized_name": "compare_view",
+          "name": "compare_view",
+          "type": "IMAGECOMPARE",
+          "widget": {
+            "name": "compare_view"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.42.5",
+        "Node name for S&R": "ImageCompare"
+      },
+      "widgets_values": [],
+      "widgets_values_named": {},
+      "title": "Slider: the edit"
+    },
+    {
+      "id": 9,
+      "type": "ImageCompare",
+      "pos": [
+        2211.9561896351393,
+        657.4463058190526
+      ],
+      "size": [
+        731.5483874459749,
+        688.6868426919496
+      ],
+      "flags": {},
+      "order": 8,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "image_a",
+          "name": "image_a",
+          "shape": 7,
+          "type": "IMAGE",
+          "link": 23
+        },
+        {
+          "localized_name": "image_b",
+          "name": "image_b",
+          "shape": 7,
+          "type": "IMAGE",
+          "link": 24
+        },
+        {
+          "localized_name": "compare_view",
+          "name": "compare_view",
+          "type": "IMAGECOMPARE",
+          "widget": {
+            "name": "compare_view"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.42.5",
+        "Node name for S&R": "ImageCompare"
+      },
+      "widgets_values": [],
+      "widgets_values_named": {},
+      "title": "Slider: the repair"
+    },
+    {
+      "id": 11,
+      "type": "SameFaceSimple",
+      "pos": [
+        917.1838323551976,
+        104.41811630023375
+      ],
+      "size": [
+        325,
+        292
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "before",
+          "name": "before",
+          "type": "IMAGE",
+          "link": 13
+        },
+        {
+          "localized_name": "after",
+          "name": "after",
+          "type": "IMAGE",
+          "link": 14
+        },
+        {
+          "localized_name": "repair",
+          "name": "repair",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "repair"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "before_view",
+          "name": "before_view",
+          "type": "IMAGE",
+          "links": [
+            15
+          ]
+        },
+        {
+          "localized_name": "after_view",
+          "name": "after_view",
+          "type": "IMAGE",
+          "links": [
+            16
+          ]
+        },
+        {
+          "localized_name": "repaired",
+          "name": "repaired",
+          "type": "IMAGE",
+          "links": [
+            22
+          ]
+        },
+        {
+          "localized_name": "shift_map",
+          "name": "shift_map",
+          "type": "IMAGE",
+          "links": [
+            17
+          ]
+        },
+        {
+          "localized_name": "histogram",
+          "name": "histogram",
+          "type": "IMAGE",
+          "links": [
+            18
+          ]
+        },
+        {
+          "localized_name": "median",
+          "name": "median",
+          "type": "FLOAT",
+          "links": null
+        },
+        {
+          "localized_name": "repaired_median",
+          "name": "repaired_median",
+          "type": "FLOAT",
+          "links": null
+        }
+      ],
+      "properties": {
+        "aux_id": "fixed-42/comfyui-sameface",
+        "ver": "cf68f685cc3c6af22c785f521ba0e897a4660f11",
+        "Node name for S&R": "SameFaceSimple"
+      },
+      "widgets_values": [
+        true
+      ],
+      "widgets_values_named": {
+        "repair": true
+      },
+      "title": "SameFace Simple: measure and repair"
+    },
+    {
+      "id": 12,
+      "type": "SameFaceSimple",
+      "pos": [
+        1737.1018923551978,
+        708.5278363002338
+      ],
+      "size": [
+        325,
+        292
+      ],
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "before",
+          "name": "before",
+          "type": "IMAGE",
+          "link": 21
+        },
+        {
+          "localized_name": "after",
+          "name": "after",
+          "type": "IMAGE",
+          "link": 22
+        },
+        {
+          "localized_name": "repair",
+          "name": "repair",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "repair"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "before_view",
+          "name": "before_view",
+          "type": "IMAGE",
+          "links": [
+            23
+          ]
+        },
+        {
+          "localized_name": "after_view",
+          "name": "after_view",
+          "type": "IMAGE",
+          "links": [
+            24
+          ]
+        },
+        {
+          "localized_name": "repaired",
+          "name": "repaired",
+          "type": "IMAGE",
+          "links": []
+        },
+        {
+          "localized_name": "shift_map",
+          "name": "shift_map",
+          "type": "IMAGE",
+          "links": []
+        },
+        {
+          "localized_name": "histogram",
+          "name": "histogram",
+          "type": "IMAGE",
+          "links": [
+            25
+          ]
+        },
+        {
+          "localized_name": "median",
+          "name": "median",
+          "type": "FLOAT",
+          "links": []
+        },
+        {
+          "localized_name": "repaired_median",
+          "name": "repaired_median",
+          "type": "FLOAT",
+          "links": []
+        }
+      ],
+      "properties": {
+        "aux_id": "fixed-42/comfyui-sameface",
+        "ver": "cf68f685cc3c6af22c785f521ba0e897a4660f11",
+        "Node name for S&R": "SameFaceSimple"
+      },
+      "widgets_values": [
+        false
+      ],
+      "widgets_values_named": {
+        "repair": false
+      },
+      "title": "SameFace Simple: measure the repair"
+    },
+    {
+      "id": 13,
+      "type": "PreviewImage",
+      "pos": [
+        1756.8318361308447,
+        1102.4813142974174
+      ],
+      "size": [
+        140,
+        26
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "images",
+          "name": "images",
+          "type": "IMAGE",
+          "link": 25
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "images",
+          "name": "images",
+          "type": "IMAGE",
+          "links": null
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.42.5",
+        "Node name for S&R": "PreviewImage"
+      },
+      "title": "Histogram: the repair"
+    }
+  ],
+  "links": [
+    [
+      13,
+      2,
+      0,
+      11,
+      0,
+      "IMAGE"
+    ],
+    [
+      14,
+      3,
+      0,
+      11,
+      1,
+      "IMAGE"
+    ],
+    [
+      15,
+      11,
+      0,
+      8,
+      0,
+      "IMAGE"
+    ],
+    [
+      16,
+      11,
+      1,
+      8,
+      1,
+      "IMAGE"
+    ],
+    [
+      17,
+      11,
+      3,
+      5,
+      0,
+      "IMAGE"
+    ],
+    [
+      18,
+      11,
+      4,
+      4,
+      0,
+      "IMAGE"
+    ],
+    [
+      21,
+      2,
+      0,
+      12,
+      0,
+      "IMAGE"
+    ],
+    [
+      22,
+      11,
+      2,
+      12,
+      1,
+      "IMAGE"
+    ],
+    [
+      23,
+      12,
+      0,
+      9,
+      0,
+      "IMAGE"
+    ],
+    [
+      24,
+      12,
+      1,
+      9,
+      1,
+      "IMAGE"
+    ],
+    [
+      25,
+      12,
+      4,
+      13,
+      0,
+      "IMAGE"
+    ]
+  ],
+  "groups": [],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 0.9090909090909092,
+      "offset": [
+        -881.9318361308453,
+        -113.48131429741733
+      ]
+    },
+    "qgn_navigation_groups": [],
+    "qgn_locked": false
+  },
+  "version": 0.4
+}

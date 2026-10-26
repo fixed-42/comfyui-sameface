@@ -16,8 +16,8 @@ import numpy as np
 import torch
 from PIL import Image
 
-from .mask_shapes import (JOIN_REACH, REGIONS, ears_beside, face_in, join, outline, parts,
-                          pick_face)
+from .mask_shapes import (JOIN_REACH, REGIONS, distinct, ears_beside, face_in, join, outline,
+                          parts, pick_face)
 from .measure import Region
 
 # Pinned to commits, not to `main`: the weights decide the outline, and a
@@ -157,7 +157,7 @@ class FaceMasker(_OnDemand):
             return self._head(rgb, order, index, ears, threshold, gap, ear_threshold)
         with self:
             pil = Image.fromarray(rgb)
-            faces = self.detect(pil, FACE_PROMPT, threshold)
+            faces = distinct(self.detect(pil, FACE_PROMPT, threshold))
             box, score = _pick(faces, order, index, threshold)
             face_mask = self.segment(rgb, box)
             ears = self._ears(pil, rgb, box, ear_threshold) if ears else []
@@ -180,7 +180,7 @@ class FaceMasker(_OnDemand):
         is quietly only a face."""
         with self:
             pil = Image.fromarray(rgb)
-            heads = self.detect(pil, HEAD_PROMPT, threshold)
+            heads = distinct(self.detect(pil, HEAD_PROMPT, threshold))
             box, score = _pick(heads, order, index, threshold, "head")
             # Found by where it is, inside the head already chosen.
             face = face_in(box, self.detect(pil, FACE_PROMPT))
