@@ -1547,11 +1547,11 @@
         "Node name for S&R": "LoadImage"
       },
       "widgets_values": [
-        "before.png",
+        "family_before.jpg",
         "image"
       ],
       "widgets_values_named": {
-        "image": "before.png",
+        "image": "family_before.jpg",
         "upload": "image"
       },
       "title": "Before"
@@ -1613,14 +1613,38 @@
         "Node name for S&R": "LoadImage"
       },
       "widgets_values": [
-        "after.png",
+        "family_after.png",
         "image"
       ],
       "widgets_values_named": {
-        "image": "after.png",
+        "image": "family_after.png",
         "upload": "image"
       },
       "title": "After (the edit)"
+    },
+    {
+      "id": 4204518726308860,
+      "type": "MarkdownNote",
+      "pos": [
+        -1231.6108822271206,
+        -260
+      ],
+      "size": [
+        440,
+        460
+      ],
+      "flags": {},
+      "order": 24,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "title": "Read me",
+      "properties": {},
+      "widgets_values": [
+        "## SameFace, step by step\n\nA family photo (Library of Congress, public domain) edited onto a museum\nbackdrop, and one person in it measured and repaired.\n\n**Try it:** copy the two pictures in `custom_nodes/comfyui-sameface/example_workflows/input/` into `ComfyUI/input/`, or drag each onto its Load Image, then run. The models download on the first run, about 1.8 GB.\n\n- **Face Mask** chooses the person: the heads are counted left to right, and\n  index 1 is the mother. Use the same person on every side.\n- **Measure: the edit** measures her head, **Repair** moves it back, and\n  **Measure: the repair** measures what is left. Each has a slider, a shift\n  map and a histogram; the reports are in the Preview Any nodes.\n- Every setting is described in the pack's `docs/nodes.md`.\n\n**A slider is blank?** The built-in Compare Images needs **Modern Node Design (Nodes 2.0)** on: Settings \u2192 Comfy \u2192 Nodes 2.0. Or use **Image Comparer (rgthree)** in its place.\n"
+      ],
+      "color": "#432",
+      "bgcolor": "#653"
     }
   ],
   "links": [
