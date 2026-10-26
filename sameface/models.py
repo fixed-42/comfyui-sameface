@@ -8,9 +8,12 @@
 
 All three are open weights: Grounding DINO and SAM 2 are Apache-2.0, RAFT's
 torchvision weights BSD-3-Clause. They download on first use, into the
-Hugging Face and torch caches.
+Hugging Face and torch caches; after that they load from the caches with no
+network at all.
 """
+import logging
 import threading
+from contextlib import contextmanager
 
 import numpy as np
 import torch
@@ -55,6 +58,31 @@ def _pick(found, order, index, threshold, what="face"):
     except ValueError as error:
         raise ValueError(f"{error} at confidence {threshold:g} - lower it if a {what} "
                          f"is missed") from error
+
+
+@contextmanager
+def _quiet_hub():
+    """The Hub client logs every request it makes at INFO, which ComfyUI's
+    log shows: dozens of lines per model. Warnings still come through, and
+    the level is put back after."""
+    logger = logging.getLogger("httpx")
+    level = logger.level
+    logger.setLevel(logging.WARNING)
+    try:
+        yield
+    finally:
+        logger.setLevel(level)
+
+
+def _pretrained(kind, name, revision):
+    """`kind.from_pretrained` from the local cache when the pinned revision is
+    there, else from the Hub. Asking the Hub first would send a request per
+    file on every start, and fail without a network."""
+    with _quiet_hub():
+        try:
+            return kind.from_pretrained(name, revision=revision, local_files_only=True)
+        except OSError:
+            return kind.from_pretrained(name, revision=revision)
 
 
 def _devices():
@@ -107,14 +135,11 @@ class FaceMasker(_OnDemand):
         from transformers import (AutoModelForZeroShotObjectDetection, AutoProcessor,
                                   Sam2Model, Sam2Processor)
         return {
-            "detect_inputs": AutoProcessor.from_pretrained(
-                DETECTOR, revision=DETECTOR_REVISION),
-            "detector": AutoModelForZeroShotObjectDetection.from_pretrained(
-                DETECTOR, revision=DETECTOR_REVISION).eval(),
-            "segment_inputs": Sam2Processor.from_pretrained(
-                SEGMENTER, revision=SEGMENTER_REVISION),
-            "segmenter": Sam2Model.from_pretrained(
-                SEGMENTER, revision=SEGMENTER_REVISION).eval(),
+            "detect_inputs": _pretrained(AutoProcessor, DETECTOR, DETECTOR_REVISION),
+            "detector": _pretrained(AutoModelForZeroShotObjectDetection, DETECTOR,
+                                    DETECTOR_REVISION).eval(),
+            "segment_inputs": _pretrained(Sam2Processor, SEGMENTER, SEGMENTER_REVISION),
+            "segmenter": _pretrained(Sam2Model, SEGMENTER, SEGMENTER_REVISION).eval(),
         }
 
     def _modules(self):

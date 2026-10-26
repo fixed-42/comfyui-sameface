@@ -12,7 +12,7 @@ pytest.importorskip("torch")
 pytest.importorskip("PIL")
 
 from sameface.models import (BOX_THRESHOLD, FACE_PROMPT, FACE_THRESHOLD,  # noqa: E402
-                             HEAD_PROMPT, FaceMasker)
+                             HEAD_PROMPT, FaceMasker, _pretrained)
 
 POSTER = ([90.0, 50.0, 130.0, 100.0], 0.43)
 BABY = ([200.0, 340.0, 290.0, 470.0], 0.59)
@@ -117,3 +117,28 @@ def test_a_head_without_ears_has_only_what_its_hair_covers():
 def test_hair_beyond_the_gap_is_an_error_not_a_face_alone():
     with pytest.raises(ValueError, match="widen gap"):
         HairApart()(RGB, region="head", gap=0.0)
+
+
+class Pretrained:
+    """Stands in for a model class: in the cache or not."""
+
+    def __init__(self, cached):
+        self.cached, self.calls = cached, []
+
+    def from_pretrained(self, name, revision, local_files_only=False):
+        self.calls.append(local_files_only)
+        if local_files_only and not self.cached:
+            raise OSError("not in the cache")
+        return "model"
+
+
+def test_a_cached_model_loads_without_asking_the_hub():
+    kind = Pretrained(cached=True)
+    assert _pretrained(kind, "name", "revision") == "model"
+    assert kind.calls == [True]
+
+
+def test_a_model_not_yet_cached_is_downloaded():
+    kind = Pretrained(cached=False)
+    assert _pretrained(kind, "name", "revision") == "model"
+    assert kind.calls == [True, False]
