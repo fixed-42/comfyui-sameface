@@ -1,181 +1,110 @@
 # SameFace
 
-ComfyUI nodes that measure how far an image edit moved a face, and move it back.
+**Measure and repair face drift in ComfyUI**, for old-photo restoration and
+face edits.
 
-An edit model asked to change the hair or the background often changes the face
-a little too: an eye sits higher, the jaw is wider, the nose has moved. Each
-change is small, but together they are why the result stops looking like the
-same person. SameFace measures that drift and repairs it.
+Restore an old photo, colourise it, or ask an edit model for new hair or a new
+background, and the face often comes back slightly different: an eye a little
+higher, the jaw a little wider, the nose moved. Today's edit models are good
+enough that each change is too small to see, yet together they are why the
+result stops looking quite like the same person. SameFace measures that drift
+point by point across the face, shows where it is, and moves the face back.
 
-## Nodes
+![Lincoln's 1863 portrait with its measured points, the restored and colourised edit with arrows to where each point should be, and the drift of the edit against the repair](docs/images/hero.png)
 
-**SameFace Simple** is the one to start with: `before` + `after` (+ `repair`,
-on by default) →
-- `before_view`, `after_view`: into Compare Images for a slider, the measured
-  points on both and arrows ten times their length
-- `repaired`: the after with its face moved back
-- `shift_map`: where on the face it drifted
-- `histogram`: how far the points drifted, the edit as bars and the repair as
-  an outline - the one further left drifted less
-- `median`, `repaired_median`: the figures, % of face size - also shown on
-  the node after a run
+*Lincoln, 1863, restored and colourised by an edit model. The edit moved the
+face by 0.073% of its size. After SameFace's repair, 0.009%: below the noise
+floor, so what is left cannot be told from the measurement's own noise.*
 
-It measures the after against the before, repairs it at full strength, and
-measures the repair against the before. The repair keeps the after's own
-framing and size: only the face's features move, to where the before has
-them. Simple picks the fit by itself: whichever of similarity and affine
-(below) leaves the smaller median on the edit, and the repair's figure uses
-the same one so the two compare. Its figures are the same as Measure's for
-the same pair. It measures the surest face on each side and says on the node
-when there was more than one; to choose a person, use Face Mask with Measure.
+**Demo video:** *(link to come)*
 
-The rest are the advanced nodes, each step with every setting. Measure runs
-the models and gives the figures. Every picture is drawn by a node of its own
-from Measure's `drift`, and runs no models.
+## What it is for
 
-**SameFace Measure**: `before` + `after` (+ `before_mask`, `after_mask`,
-optional) →
-- `report`: the figures in words
-- `similarity_median`, `affine_median`: the headline figures, % of face size
-- `before_mask`, `after_mask`: the face masks used
-- `drift`: everything measured, for Repair and the nodes that draw it
-- `points`: every measured point as JSON, one list per column (`pair`, `x`,
-  `y`, `dx_`/`dy_`/`drift_` for each fit, `confidence`, `part`), for your own
-  plots or analysis
+- **Old-photo restoration and colourisation.** Check that the restored face is
+  still the same person's, see where it changed, and put it back.
+- **Face edits.** New hair, background, lighting or clothes, and the same face.
+- **Comparing edit models and workflows.** One figure per pair, on the same
+  scale for every model, down to drift far too small for the eye - with the
+  pictures to show where it is.
 
-Without a mask, Measure finds the face itself, and when there are several
-it measures the surest on each side; the report says when that happened.
-A wired mask is used instead, on that side only: everything inside it is
-measured as face, so `ears` has no effect there. One mask serves every image,
-or give one per image; a mask must be its image's size. A box-shaped mask (a
-detector's bounding box) is measured, and the report warns that hair and
-background inside it count as face.
+## Quick start
 
-**SameFace Face Mask**: `image` + `region`, `order`, `index`, `ears`, `confidence`, `gap`, `ear_confidence` → `mask`, `faces_found`
+1. Install (below) and restart ComfyUI.
+2. Open `example_workflows/sameface_simple.json`.
+3. Load your original into **Before** and the edited picture into **After**,
+   and run. The first Simple measures and repairs; the second measures the
+   repair, for a slider of what is left.
 
-One person's face when there are several: the faces are counted `left to
-right` (by the middle of each face) or `surest` first, and the one at `index`,
-from 0, is masked. Wire one into each of Measure's `before_mask` and
-`after_mask`, choosing the same person on both sides. Left to right is the
-default because it stays put when two faces score nearly the same, which
-`surest` does not; if the edit moved people around, the index can differ
-between the sides. `faces_found` says how many there were.
+**SameFace Simple** shows the figures on the node and gives:
 
-`confidence` (default 0.5) is the detector score a face or head needs to be
-counted. On one family photo the people score 0.58 to 0.77, a face on
-a poster behind them 0.34 to 0.54, and nothing else above 0.13. Raise it to
-leave out a face you don't want counted, lower it for one that is missed.
-Mind that the same face can score differently on the two sides - the poster
-scores 0.43 in the source and 0.54 in the edit, so at 0.5 it is counted in one
-and not the other, and every index after it shifts. Compare `faces_found` on
-both sides. Measure finding its own face (no mask wired) keeps 0.25.
+| Output | |
+|---|---|
+| `before_view`, `after_view` | into Compare Images for a slider: the measured points, with arrows (ten times their length) to where each point should be |
+| `repaired` | the edit with its face moved back; everything else, and the framing, as the edit left them |
+| `shift_map` | where on the face it drifted: grey within the noise, darker green for more |
+| `histogram` | how far the points drifted, the edit as bars and the repair as an outline: the one further left drifted less |
+| `median`, `repaired_median` | the figures, % of face size |
 
-Only what is counted - the faces, or the heads - uses `confidence`. The parts
-of the person chosen are found by where they sit: the face inside a head at
-0.25, and the ears beside the face at `ear_confidence` (default 0.25). Ears
-score low, 0.22 to 0.28 on that photo, so lower it a little if one is
-missed; a false ear is taken only if it sits beside the face, is much smaller
-than it and joins it across the gap.
+It measures the surest face on each side. Turn `repair` off to only measure.
 
-`gap` (default 4, in % of the face's diagonal) is how far apart the face and
-its ears, or the face and its hair, may be and still be joined into one mask.
-Widen it when a head mask stops at the hairline. Hair further off than the
-gap is an error rather than a head mask that is only a face. Closing a gap
-also fills notches in the outline narrower than it, so keep it no wider than
-it needs to be.
+![The before with its points, the edit with arrows, the shift map and the repaired image](docs/images/simple_outputs.jpg)
 
-`region` `head` masks the whole head, hair included, so the head's shape is
-measured as well as the face. Use it only when the edit left the hair alone:
-RAFT does not know hair from face, so hair the edit changed reads as drift.
-Hair is also low-texture and measures noisier than skin, and the noise floor
-was measured on faces, so a head's figures are not comparable with a face's.
-Repair from a face measurement: a head measurement would move the hair as
-well, and the hair edge with it. To see the head's figures, add a second
-Measure with head masks for reading only.
+*An edit that put a fan in her hand moved the face by 0.032%; repaired,
+0.013%. Left to right: `before_view`, `after_view`, `shift_map`, `repaired`.*
 
-**SameFace Shift Map**: `drift` + `fit`, `steps` → `shift_map`
+## The advanced nodes
 
-The before image with every measured point coloured by how far the fit left
-it: grey within the noise floor, then a darker green at each of `steps`, in %
-of face size. The default, `0.05, 0.1, 0.25, 0.5, 1`, gives six greens, which
-suits most edits; give 1 to 8 steps of your own, smallest first.
+Every step on its own node with all its settings, for choosing one face among
+several, measuring the whole head, or drawing your own plots. All are in
+**[The nodes](docs/nodes.md)**.
 
-**SameFace Repair**: `drift` + `strength`, `framing` → `repaired`, `covered`
+`example_workflows/sameface_advanced.json` is a family photo edited onto a
+museum backdrop: Face Mask chooses the mother's head on each side, Measure
+measures it, Repair moves it back, and a second Measure measures the repair -
+0.211% to 0.019% after the affine fit - with a view, a shift map and a
+histogram of each.
 
-Moves the after's features back to where the before has them. With `framing`
-`after` (the default) the repaired image keeps the edit's framing and size and
-only the face changes. With `before`, the whole after is lined up with the
-before, enlarged so its detail is kept; where it does not reach is black, and
-`covered` says where that is.
+| Node | |
+|---|---|
+| SameFace Measure | runs the models and gives the figures and `drift`, which the others read |
+| SameFace Face Mask | one person's face or head, for Measure's mask inputs |
+| SameFace Repair | moves the edit's face back, keeping its framing or lining it up with the before |
+| SameFace View | the before and after with the points and a mesh, for a slider |
+| SameFace Shift Map | the before with each point coloured by its drift |
+| SameFace Drift Histogram | how far the points drifted, after each fit |
+| SameFace Drift Zones | the face as a grid, each cell's median drift |
 
-**SameFace View**: `drift` → `before_view`, `after_view`
+## How it works
 
-The before and the after in one frame, with the measured points drawn on: green
-on the before, red on the after with an arrow to where the before has each
-point, and a mesh joining the points, the same triangles on both sides, so a
-part of the face that drifted shows as triangles changing shape. Feed both into
-**Compare Images** for a slider, or into Save Image to keep them. The after is
-moved by the fit you choose, so the arrows are the drift it leaves. An
-exaggeration setting stretches the arrows only and is printed on the picture.
-Orange crosses on the before mark the gaps in the grid: points the flow could
-not vouch for (see below).
+1. **The face.** Grounding DINO finds it from the word "face", with the ears;
+   SAM 2 outlines it.
+2. **Every point of it.** RAFT optical flow follows each pixel of the before
+   face into the edit and back. A point that does not return to where it
+   started is dropped, so texture the edit rewrote is not mistaken for
+   movement. A second pass, with the two faces lined up first, keeps the
+   framing out of the figures.
+3. **The drift.** The move, scale and turn of the whole face are fitted and
+   taken out; what is left at each point is drift, in % of the face's size.
+4. **The repair.** A smooth warp through the measured points, eased to
+   nothing beyond the face, moves each feature back. The repaired image is
+   then measured again: only a fresh measurement says what the repair left.
 
-**SameFace Drift Histogram**: `drift` → `histogram`
+The **noise floor is 0.01% of face size**: the drift the measurement gives a
+face against a resized, recompressed copy of itself, which has no true drift.
+It is re-measured by a tool in this repo, on your own faces if you like. The
+method, the fits and the limits are in
+**[How it measures](docs/how-it-measures.md)**.
 
-How many points drifted how far: bars for the similarity fit, an outline for
-the affine fit, each median marked, and the noise floor dashed.
+## Open weights
 
-**SameFace Drift Zones**: `drift` + `fit`, `rows`, `cols`, `steps` → `zones`
+No training, no API, nothing leaves the machine. The models download on first
+use, about 1.8 GB, pinned to fixed revisions:
 
-The before face cut into a grid (4 × 3 by default), each cell tinted by the
-median drift of its points, in the shift map's colours, with the figure
-printed. The cells are a grid over the face, not named features: a cell over
-the eyes is not "the eyes".
-
-Measure the repaired image against the before to see what is left, and View
-that measurement for a before/repaired slider. The warp puts its own points
-where they belong by construction, so only a fresh measurement on the new
-pixels can say whether it helped.
-
-Batches: one before with any number of afters, or as many befores as afters.
-
-## How it measures
-
-1. **Face mask**: Grounding DINO finds the face and the ears from the words
-   "face" and "ear"; SAM 2 outlines them. Ears in, neck out. For a head, SAM 2
-   outlines the hair in a "head" box and the face inside it is joined on. Or
-   the mask you wire in.
-2. **Optical flow**: each side is cropped to its own face and resampled to one
-   working size, so a resize or a reframing is not mistaken for drift. RAFT then
-   follows every pixel of the before face into the after, forwards and
-   backwards. RAFT gives no confidence of its own, so this is the check: a
-   point that does not come back to where it started is left out. That
-   happens where the edit rewrote texture or something covers the face. The
-   rest, a few hundred matched points across the face, are measured.
-   Then a second pass: the after is cut again where a similarity fit through
-   those points puts the before's crop, turned and scaled with it, and RAFT
-   runs once more on the two faces lined up. With the first pass alone, the
-   turn and scale left between two box crops read partly as drift, so the
-   same edit measured lower once it had been moved onto the before.
-3. **Flat fit**: a similarity (move, scale, turn) and an affine (also stretch
-   and slant) are fitted through the points. What each fit leaves at a point is
-   the drift there, as a percentage of face size.
-   - Large under similarity but small under affine: the edit mostly stretched the face.
-   - Large under both: features moved against each other.
-4. **Repair**: a smooth warp, a thin-plate spline through the points, eased
-   to nothing just beyond the face, so hair and background are left as they
-   were. In the after's framing, the before's points are first carried into
-   the after by the after's own pose; in the before's, the after is first
-   moved by the similarity fit.
-
-The noise floor is **0.01% of face size**: below it, a shift cannot be told
-from the measurement's own noise. It comes from null pairs, each face resampled
-to 512 and 1414 pixels and saved as a JPEG, so the true drift is zero: twice
-their median drift (0.0033% over 25 faces), rounded up to a 1-2-5 step. On the
-shift map, grey is within that floor. To measure it on your own faces, with
-ComfyUI's Python, from this folder:
-
-    python tools/calibrate_noise_floor.py <folder of face images>
+| Model | Used for | Licence |
+|---|---|---|
+| [Grounding DINO](https://huggingface.co/IDEA-Research/grounding-dino-base) (base) | finding the face, ears and head from words | Apache-2.0 |
+| [SAM 2.1](https://huggingface.co/facebook/sam2.1-hiera-large) (Hiera large) | outlining them | Apache-2.0 |
+| [RAFT](https://pytorch.org/vision/stable/models/raft.html) (large, torchvision) | the optical flow | BSD-3-Clause |
 
 ## Install
 
@@ -188,14 +117,7 @@ git clone https://github.com/fixed-42/comfyui-sameface
 pip install -r comfyui-sameface/requirements.txt
 ```
 
-The models download on first use (about 1.8 GB) into the Hugging Face and
-torch caches. All are open weights: Grounding DINO and SAM 2.1 under
-Apache-2.0, and RAFT (torchvision) under BSD-3-Clause.
-
-`example_workflows/` has two workflows, a restored 720p frame and a
-hair-and-background edit. Each measures a pair, repairs it, measures the
-repair, and shows the points on a before/after slider. Load your own before
-and after into the two Load Image nodes.
+Restart ComfyUI; the nodes are under **SameFace**.
 
 ## Tests
 
@@ -214,3 +136,9 @@ with ComfyUI's own Python to include it.
 ## Licence
 
 Apache-2.0.
+
+The pictures: Lincoln by Alexander Gardner, 1863 (Library of Congress,
+LC-DIG-ppmsca-19301), and the family from the Farm Security Administration/
+Office of War Information collection (Library of Congress), both in the public
+domain; the edits of them, and the portrait with the fan, were made for this
+project with local models.

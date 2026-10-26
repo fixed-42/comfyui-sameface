@@ -1,0 +1,1882 @@
+{
+  "id": "fef87bd3-64ad-4f52-8dff-fe528ab7d384",
+  "revision": 0,
+  "last_node_id": 4204518726308861,
+  "last_link_id": 4443629469463684,
+  "nodes": [
+    {
+      "id": 195,
+      "type": "SameFaceRepair",
+      "pos": [
+        1298.795360934262,
+        591.5678542841391
+      ],
+      "size": [
+        270,
+        102
+      ],
+      "flags": {},
+      "order": 10,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "drift",
+          "name": "drift",
+          "type": "SAMEFACE_DRIFT",
+          "link": 87636097044512
+        },
+        {
+          "localized_name": "strength",
+          "name": "strength",
+          "type": "FLOAT",
+          "widget": {
+            "name": "strength"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "framing",
+          "name": "framing",
+          "type": "COMBO",
+          "widget": {
+            "name": "framing"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "repaired",
+          "name": "repaired",
+          "type": "IMAGE",
+          "links": [
+            2257463861366642,
+            4267617740407458
+          ]
+        },
+        {
+          "localized_name": "covered",
+          "name": "covered",
+          "type": "MASK",
+          "links": []
+        }
+      ],
+      "properties": {
+        "aux_id": "fixed-42/comfyui-sameface",
+        "ver": "df2a23f9697452ff3d6f29e3e9092555f741b054",
+        "Node name for S&R": "SameFaceRepair"
+      },
+      "widgets_values": [
+        1,
+        "before"
+      ],
+      "widgets_values_named": {
+        "strength": 1,
+        "framing": "before"
+      }
+    },
+    {
+      "id": 202,
+      "type": "SameFaceHistogram",
+      "pos": [
+        891.2632967059661,
+        476.9864289676407
+      ],
+      "size": [
+        213.16666259765626,
+        26
+      ],
+      "flags": {},
+      "order": 12,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "drift",
+          "name": "drift",
+          "type": "SAMEFACE_DRIFT",
+          "link": 2246476122943555
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "histogram",
+          "name": "histogram",
+          "type": "IMAGE",
+          "links": [
+            200
+          ]
+        }
+      ],
+      "properties": {
+        "aux_id": "fixed-42/comfyui-sameface",
+        "ver": "0fb43c84959dd402b4706bcc1212e400ec8463b3",
+        "Node name for S&R": "SameFaceHistogram"
+      }
+    },
+    {
+      "id": 203,
+      "type": "SameFaceView",
+      "pos": [
+        1256.9014056681362,
+        128.33399738436947
+      ],
+      "size": [
+        270,
+        174
+      ],
+      "flags": {},
+      "order": 13,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "drift",
+          "name": "drift",
+          "type": "SAMEFACE_DRIFT",
+          "link": 3820925664921373
+        },
+        {
+          "localized_name": "fit",
+          "name": "fit",
+          "type": "COMBO",
+          "widget": {
+            "name": "fit"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "points",
+          "name": "points",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "points"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "mesh",
+          "name": "mesh",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "mesh"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "exaggeration",
+          "name": "exaggeration",
+          "type": "COMBO",
+          "widget": {
+            "name": "exaggeration"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "dropped",
+          "name": "dropped",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "dropped"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "before_view",
+          "name": "before_view",
+          "type": "IMAGE",
+          "links": [
+            203
+          ]
+        },
+        {
+          "localized_name": "after_view",
+          "name": "after_view",
+          "type": "IMAGE",
+          "links": [
+            204
+          ]
+        }
+      ],
+      "properties": {
+        "aux_id": "fixed-42/comfyui-sameface",
+        "ver": "0fb43c84959dd402b4706bcc1212e400ec8463b3",
+        "Node name for S&R": "SameFaceView"
+      },
+      "widgets_values": [
+        "affine",
+        true,
+        false,
+        "10",
+        true
+      ],
+      "widgets_values_named": {
+        "fit": "affine",
+        "points": true,
+        "mesh": false,
+        "exaggeration": "10",
+        "dropped": true
+      }
+    },
+    {
+      "id": 204,
+      "type": "PreviewImage",
+      "pos": [
+        1336.5450848216747,
+        1148.7569442168558
+      ],
+      "size": [
+        140,
+        246
+      ],
+      "flags": {},
+      "order": 17,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "images",
+          "name": "images",
+          "type": "IMAGE",
+          "link": 200
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "images",
+          "name": "images",
+          "type": "IMAGE",
+          "links": []
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.42.5",
+        "Node name for S&R": "PreviewImage"
+      }
+    },
+    {
+      "id": 207,
+      "type": "ImageCompare",
+      "pos": [
+        1623.5378987382228,
+        125.1844616945263
+      ],
+      "size": [
+        400,
+        350
+      ],
+      "flags": {},
+      "order": 18,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "image_a",
+          "name": "image_a",
+          "shape": 7,
+          "type": "IMAGE",
+          "link": 203
+        },
+        {
+          "localized_name": "image_b",
+          "name": "image_b",
+          "shape": 7,
+          "type": "IMAGE",
+          "link": 204
+        },
+        {
+          "localized_name": "compare_view",
+          "name": "compare_view",
+          "type": "IMAGECOMPARE",
+          "widget": {
+            "name": "compare_view"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.42.5",
+        "Node name for S&R": "ImageCompare"
+      },
+      "widgets_values": [],
+      "widgets_values_named": {},
+      "title": "Slider: the edit"
+    },
+    {
+      "id": 209,
+      "type": "SameFaceView",
+      "pos": [
+        2075.5995523230977,
+        568.3970393167083
+      ],
+      "size": [
+        270,
+        174
+      ],
+      "flags": {},
+      "order": 20,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "drift",
+          "name": "drift",
+          "type": "SAMEFACE_DRIFT",
+          "link": 2103688464956848
+        },
+        {
+          "localized_name": "fit",
+          "name": "fit",
+          "type": "COMBO",
+          "widget": {
+            "name": "fit"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "points",
+          "name": "points",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "points"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "mesh",
+          "name": "mesh",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "mesh"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "exaggeration",
+          "name": "exaggeration",
+          "type": "COMBO",
+          "widget": {
+            "name": "exaggeration"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "dropped",
+          "name": "dropped",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "dropped"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "before_view",
+          "name": "before_view",
+          "type": "IMAGE",
+          "links": [
+            208
+          ]
+        },
+        {
+          "localized_name": "after_view",
+          "name": "after_view",
+          "type": "IMAGE",
+          "links": [
+            209
+          ]
+        }
+      ],
+      "properties": {
+        "aux_id": "fixed-42/comfyui-sameface",
+        "ver": "0fb43c84959dd402b4706bcc1212e400ec8463b3",
+        "Node name for S&R": "SameFaceView"
+      },
+      "widgets_values": [
+        "affine",
+        true,
+        false,
+        "10",
+        true
+      ],
+      "widgets_values_named": {
+        "fit": "affine",
+        "points": true,
+        "mesh": false,
+        "exaggeration": "10",
+        "dropped": true
+      }
+    },
+    {
+      "id": 210,
+      "type": "ImageCompare",
+      "pos": [
+        2454.967898738223,
+        564.5744616945263
+      ],
+      "size": [
+        400,
+        350
+      ],
+      "flags": {},
+      "order": 24,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "image_a",
+          "name": "image_a",
+          "shape": 7,
+          "type": "IMAGE",
+          "link": 208
+        },
+        {
+          "localized_name": "image_b",
+          "name": "image_b",
+          "shape": 7,
+          "type": "IMAGE",
+          "link": 209
+        },
+        {
+          "localized_name": "compare_view",
+          "name": "compare_view",
+          "type": "IMAGECOMPARE",
+          "widget": {
+            "name": "compare_view"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.42.5",
+        "Node name for S&R": "ImageCompare"
+      },
+      "widgets_values": [],
+      "widgets_values_named": {},
+      "title": "Slider: the repair"
+    },
+    {
+      "id": 212,
+      "type": "SameFaceHistogram",
+      "pos": [
+        1719.2362210242682,
+        905.9870393167075
+      ],
+      "size": [
+        213.16666259765626,
+        26
+      ],
+      "flags": {},
+      "order": 22,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "drift",
+          "name": "drift",
+          "type": "SAMEFACE_DRIFT",
+          "link": 4021953376276947
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "histogram",
+          "name": "histogram",
+          "type": "IMAGE",
+          "links": [
+            212
+          ]
+        }
+      ],
+      "properties": {
+        "aux_id": "fixed-42/comfyui-sameface",
+        "ver": "0fb43c84959dd402b4706bcc1212e400ec8463b3",
+        "Node name for S&R": "SameFaceHistogram"
+      }
+    },
+    {
+      "id": 213,
+      "type": "PreviewImage",
+      "pos": [
+        1635.3640523230965,
+        1146.0873393167076
+      ],
+      "size": [
+        140,
+        26
+      ],
+      "flags": {},
+      "order": 26,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "images",
+          "name": "images",
+          "type": "IMAGE",
+          "link": 212
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "images",
+          "name": "images",
+          "type": "IMAGE",
+          "links": []
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.42.5",
+        "Node name for S&R": "PreviewImage"
+      }
+    },
+    {
+      "id": 214,
+      "type": "SameFaceShiftMap",
+      "pos": [
+        2071.5846953321093,
+        846.0220139710037
+      ],
+      "size": [
+        270,
+        82
+      ],
+      "flags": {},
+      "order": 21,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "drift",
+          "name": "drift",
+          "type": "SAMEFACE_DRIFT",
+          "link": 3062309949601962
+        },
+        {
+          "localized_name": "fit",
+          "name": "fit",
+          "type": "COMBO",
+          "widget": {
+            "name": "fit"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "steps",
+          "name": "steps",
+          "type": "STRING",
+          "widget": {
+            "name": "steps"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "shift_map",
+          "name": "shift_map",
+          "type": "IMAGE",
+          "links": [
+            215
+          ]
+        }
+      ],
+      "properties": {
+        "aux_id": "fixed-42/comfyui-sameface",
+        "ver": "0fb43c84959dd402b4706bcc1212e400ec8463b3",
+        "Node name for S&R": "SameFaceShiftMap"
+      },
+      "widgets_values": [
+        "affine",
+        "0.05, 0.1, 0.25, 0.5, 1"
+      ],
+      "widgets_values_named": {
+        "fit": "affine",
+        "steps": "0.05, 0.1, 0.25, 0.5, 1"
+      }
+    },
+    {
+      "id": 215,
+      "type": "PreviewImage",
+      "pos": [
+        2307.493786241198,
+        1001.4765594255496
+      ],
+      "size": [
+        405.90909090909014,
+        426.9090964577406
+      ],
+      "flags": {},
+      "order": 25,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "images",
+          "name": "images",
+          "type": "IMAGE",
+          "link": 215
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "images",
+          "name": "images",
+          "type": "IMAGE",
+          "links": []
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.42.5",
+        "Node name for S&R": "PreviewImage"
+      }
+    },
+    {
+      "id": 216,
+      "type": "SameFaceShiftMap",
+      "pos": [
+        1286.130149877564,
+        -43.97798602899444
+      ],
+      "size": [
+        270,
+        82
+      ],
+      "flags": {},
+      "order": 11,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "drift",
+          "name": "drift",
+          "type": "SAMEFACE_DRIFT",
+          "link": 157821103626436
+        },
+        {
+          "localized_name": "fit",
+          "name": "fit",
+          "type": "COMBO",
+          "widget": {
+            "name": "fit"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "steps",
+          "name": "steps",
+          "type": "STRING",
+          "widget": {
+            "name": "steps"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "shift_map",
+          "name": "shift_map",
+          "type": "IMAGE",
+          "links": [
+            217
+          ]
+        }
+      ],
+      "properties": {
+        "aux_id": "fixed-42/comfyui-sameface",
+        "ver": "0fb43c84959dd402b4706bcc1212e400ec8463b3",
+        "Node name for S&R": "SameFaceShiftMap"
+      },
+      "widgets_values": [
+        "affine",
+        "0.05, 0.1, 0.25, 0.5, 1"
+      ],
+      "widgets_values_named": {
+        "fit": "affine",
+        "steps": "0.05, 0.1, 0.25, 0.5, 1"
+      }
+    },
+    {
+      "id": 217,
+      "type": "PreviewImage",
+      "pos": [
+        1967.4937862411994,
+        1002.3856503346399
+      ],
+      "size": [
+        321.36363636363575,
+        435.0909146395588
+      ],
+      "flags": {},
+      "order": 16,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "images",
+          "name": "images",
+          "type": "IMAGE",
+          "link": 217
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "images",
+          "name": "images",
+          "type": "IMAGE",
+          "links": []
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.42.5",
+        "Node name for S&R": "PreviewImage"
+      }
+    },
+    {
+      "id": 4204518726308857,
+      "type": "SameFaceFaceMask",
+      "pos": [
+        -84.99000000000001,
+        -9.680000000000007
+      ],
+      "size": [
+        270,
+        222
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "image",
+          "name": "image",
+          "type": "IMAGE",
+          "link": 4443629469463679
+        },
+        {
+          "localized_name": "region",
+          "name": "region",
+          "type": "COMBO",
+          "widget": {
+            "name": "region"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "order",
+          "name": "order",
+          "type": "COMBO",
+          "widget": {
+            "name": "order"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "index",
+          "name": "index",
+          "type": "INT",
+          "widget": {
+            "name": "index"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "ears",
+          "name": "ears",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "ears"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "confidence",
+          "name": "confidence",
+          "type": "FLOAT",
+          "widget": {
+            "name": "confidence"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "gap",
+          "name": "gap",
+          "type": "INT",
+          "widget": {
+            "name": "gap"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "ear_confidence",
+          "name": "ear_confidence",
+          "type": "FLOAT",
+          "widget": {
+            "name": "ear_confidence"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "mask",
+          "name": "mask",
+          "type": "MASK",
+          "links": [
+            1164670416087333,
+            4410662978259907,
+            4443629469463677
+          ]
+        },
+        {
+          "localized_name": "faces_found",
+          "name": "faces_found",
+          "type": "INT",
+          "links": []
+        }
+      ],
+      "properties": {
+        "aux_id": "fixed-42/comfyui-sameface",
+        "ver": "4aded71c113642027c4cbe58042cc2f38141d424",
+        "Node name for S&R": "SameFaceFaceMask"
+      },
+      "widgets_values": [
+        "head",
+        "left to right",
+        1,
+        true,
+        0.5,
+        4,
+        0.25
+      ],
+      "widgets_values_named": {
+        "region": "head",
+        "order": "left to right",
+        "index": 1,
+        "ears": true,
+        "confidence": 0.5,
+        "gap": 4,
+        "ear_confidence": 0.25
+      },
+      "title": "Face Mask: before"
+    },
+    {
+      "id": 2728046978905910,
+      "type": "SameFaceFaceMask",
+      "pos": [
+        180,
+        460
+      ],
+      "size": [
+        270,
+        222
+      ],
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "image",
+          "name": "image",
+          "type": "IMAGE",
+          "link": 4443629469463684
+        },
+        {
+          "localized_name": "region",
+          "name": "region",
+          "type": "COMBO",
+          "widget": {
+            "name": "region"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "order",
+          "name": "order",
+          "type": "COMBO",
+          "widget": {
+            "name": "order"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "index",
+          "name": "index",
+          "type": "INT",
+          "widget": {
+            "name": "index"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "ears",
+          "name": "ears",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "ears"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "confidence",
+          "name": "confidence",
+          "type": "FLOAT",
+          "widget": {
+            "name": "confidence"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "gap",
+          "name": "gap",
+          "type": "INT",
+          "widget": {
+            "name": "gap"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "ear_confidence",
+          "name": "ear_confidence",
+          "type": "FLOAT",
+          "widget": {
+            "name": "ear_confidence"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "mask",
+          "name": "mask",
+          "type": "MASK",
+          "links": [
+            2936869606566302,
+            3220665981724393
+          ]
+        },
+        {
+          "localized_name": "faces_found",
+          "name": "faces_found",
+          "type": "INT",
+          "links": []
+        }
+      ],
+      "properties": {
+        "aux_id": "fixed-42/comfyui-sameface",
+        "ver": "4aded71c113642027c4cbe58042cc2f38141d424",
+        "Node name for S&R": "SameFaceFaceMask"
+      },
+      "widgets_values": [
+        "head",
+        "left to right",
+        1,
+        true,
+        0.5,
+        4,
+        0.25
+      ],
+      "widgets_values_named": {
+        "region": "head",
+        "order": "left to right",
+        "index": 1,
+        "ears": true,
+        "confidence": 0.5,
+        "gap": 4,
+        "ear_confidence": 0.25
+      },
+      "title": "Face Mask: the edit"
+    },
+    {
+      "id": 1424860279505132,
+      "type": "SameFaceFaceMask",
+      "pos": [
+        1290,
+        780
+      ],
+      "size": [
+        270,
+        222
+      ],
+      "flags": {},
+      "order": 15,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "image",
+          "name": "image",
+          "type": "IMAGE",
+          "link": 4267617740407458
+        },
+        {
+          "localized_name": "region",
+          "name": "region",
+          "type": "COMBO",
+          "widget": {
+            "name": "region"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "order",
+          "name": "order",
+          "type": "COMBO",
+          "widget": {
+            "name": "order"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "index",
+          "name": "index",
+          "type": "INT",
+          "widget": {
+            "name": "index"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "ears",
+          "name": "ears",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "ears"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "confidence",
+          "name": "confidence",
+          "type": "FLOAT",
+          "widget": {
+            "name": "confidence"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "gap",
+          "name": "gap",
+          "type": "INT",
+          "widget": {
+            "name": "gap"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "ear_confidence",
+          "name": "ear_confidence",
+          "type": "FLOAT",
+          "widget": {
+            "name": "ear_confidence"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "mask",
+          "name": "mask",
+          "type": "MASK",
+          "links": [
+            4030016584567192
+          ]
+        },
+        {
+          "localized_name": "faces_found",
+          "name": "faces_found",
+          "type": "INT",
+          "links": []
+        }
+      ],
+      "properties": {
+        "aux_id": "fixed-42/comfyui-sameface",
+        "ver": "4aded71c113642027c4cbe58042cc2f38141d424",
+        "Node name for S&R": "SameFaceFaceMask"
+      },
+      "widgets_values": [
+        "head",
+        "left to right",
+        1,
+        true,
+        0.5,
+        4,
+        0.25
+      ],
+      "widgets_values_named": {
+        "region": "head",
+        "order": "left to right",
+        "index": 1,
+        "ears": true,
+        "confidence": 0.5,
+        "gap": 4,
+        "ear_confidence": 0.25
+      },
+      "title": "Face Mask: the repair"
+    },
+    {
+      "id": 1327151682658491,
+      "type": "MaskPreview",
+      "pos": [
+        560,
+        0
+      ],
+      "size": [
+        140.70000000000002,
+        62
+      ],
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "mask",
+          "name": "mask",
+          "type": "MASK",
+          "link": 1164670416087333
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "mask",
+          "name": "mask",
+          "type": "MASK",
+          "links": []
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.42.5",
+        "Node name for S&R": "MaskPreview"
+      }
+    },
+    {
+      "id": 3256127898021752,
+      "type": "MaskPreview",
+      "pos": [
+        560,
+        460
+      ],
+      "size": [
+        140.70000000000002,
+        62
+      ],
+      "flags": {},
+      "order": 8,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "mask",
+          "name": "mask",
+          "type": "MASK",
+          "link": 2936869606566302
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "mask",
+          "name": "mask",
+          "type": "MASK",
+          "links": []
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.42.5",
+        "Node name for S&R": "MaskPreview"
+      }
+    },
+    {
+      "id": 2669081375028363,
+      "type": "PreviewAny",
+      "pos": [
+        889,
+        -260
+      ],
+      "size": [
+        210,
+        122
+      ],
+      "flags": {},
+      "order": 14,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "source",
+          "name": "source",
+          "type": "*",
+          "link": 1501531382095205
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "STRING",
+          "name": "STRING",
+          "type": "STRING",
+          "links": []
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.42.5",
+        "Node name for S&R": "PreviewAny"
+      },
+      "widgets_values": [],
+      "widgets_values_named": {}
+    },
+    {
+      "id": 3132699844483644,
+      "type": "PreviewAny",
+      "pos": [
+        2125.2396694214876,
+        350.8264462809917
+      ],
+      "size": [
+        210,
+        122
+      ],
+      "flags": {},
+      "order": 23,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "source",
+          "name": "source",
+          "type": "*",
+          "link": 2904752645061052
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "STRING",
+          "name": "STRING",
+          "type": "STRING",
+          "links": []
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.42.5",
+        "Node name for S&R": "PreviewAny"
+      },
+      "widgets_values": [],
+      "widgets_values_named": {}
+    },
+    {
+      "id": 1182660652765398,
+      "type": "SameFaceMeasure",
+      "pos": [
+        889,
+        122
+      ],
+      "size": [
+        280.2,
+        214
+      ],
+      "flags": {},
+      "order": 9,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "before",
+          "name": "before",
+          "type": "IMAGE",
+          "link": 3454490290772720
+        },
+        {
+          "localized_name": "after",
+          "name": "after",
+          "type": "IMAGE",
+          "link": 4443629469463683
+        },
+        {
+          "localized_name": "before_mask",
+          "name": "before_mask",
+          "shape": 7,
+          "type": "MASK",
+          "link": 4410662978259907
+        },
+        {
+          "localized_name": "after_mask",
+          "name": "after_mask",
+          "shape": 7,
+          "type": "MASK",
+          "link": 3220665981724393
+        },
+        {
+          "localized_name": "ears",
+          "name": "ears",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "ears"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "drift",
+          "name": "drift",
+          "type": "SAMEFACE_DRIFT",
+          "links": [
+            87636097044512,
+            157821103626436,
+            2246476122943555,
+            3820925664921373
+          ]
+        },
+        {
+          "localized_name": "report",
+          "name": "report",
+          "type": "STRING",
+          "links": [
+            1501531382095205
+          ]
+        },
+        {
+          "localized_name": "similarity_median",
+          "name": "similarity_median",
+          "type": "FLOAT",
+          "links": []
+        },
+        {
+          "localized_name": "affine_median",
+          "name": "affine_median",
+          "type": "FLOAT",
+          "links": []
+        },
+        {
+          "localized_name": "before_mask",
+          "name": "before_mask",
+          "type": "MASK",
+          "links": []
+        },
+        {
+          "localized_name": "after_mask",
+          "name": "after_mask",
+          "type": "MASK",
+          "links": []
+        },
+        {
+          "localized_name": "points",
+          "name": "points",
+          "type": "STRING",
+          "links": []
+        }
+      ],
+      "properties": {
+        "aux_id": "fixed-42/comfyui-sameface",
+        "ver": "4aded71c113642027c4cbe58042cc2f38141d424",
+        "Node name for S&R": "SameFaceMeasure"
+      },
+      "widgets_values": [
+        true
+      ],
+      "widgets_values_named": {
+        "ears": true
+      },
+      "title": "Measure: the edit"
+    },
+    {
+      "id": 4168275768360940,
+      "type": "SameFaceMeasure",
+      "pos": [
+        1674,
+        562
+      ],
+      "size": [
+        280.2,
+        214
+      ],
+      "flags": {},
+      "order": 19,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "before",
+          "name": "before",
+          "type": "IMAGE",
+          "link": 3740323163383693
+        },
+        {
+          "localized_name": "after",
+          "name": "after",
+          "type": "IMAGE",
+          "link": 2257463861366642
+        },
+        {
+          "localized_name": "before_mask",
+          "name": "before_mask",
+          "shape": 7,
+          "type": "MASK",
+          "link": 4443629469463677
+        },
+        {
+          "localized_name": "after_mask",
+          "name": "after_mask",
+          "shape": 7,
+          "type": "MASK",
+          "link": 4030016584567192
+        },
+        {
+          "localized_name": "ears",
+          "name": "ears",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "ears"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "drift",
+          "name": "drift",
+          "type": "SAMEFACE_DRIFT",
+          "links": [
+            2103688464956848,
+            3062309949601962,
+            4021953376276947
+          ]
+        },
+        {
+          "localized_name": "report",
+          "name": "report",
+          "type": "STRING",
+          "links": [
+            2904752645061052
+          ]
+        },
+        {
+          "localized_name": "similarity_median",
+          "name": "similarity_median",
+          "type": "FLOAT",
+          "links": []
+        },
+        {
+          "localized_name": "affine_median",
+          "name": "affine_median",
+          "type": "FLOAT",
+          "links": []
+        },
+        {
+          "localized_name": "before_mask",
+          "name": "before_mask",
+          "type": "MASK",
+          "links": []
+        },
+        {
+          "localized_name": "after_mask",
+          "name": "after_mask",
+          "type": "MASK",
+          "links": []
+        },
+        {
+          "localized_name": "points",
+          "name": "points",
+          "type": "STRING",
+          "links": []
+        }
+      ],
+      "properties": {
+        "aux_id": "fixed-42/comfyui-sameface",
+        "ver": "4aded71c113642027c4cbe58042cc2f38141d424",
+        "Node name for S&R": "SameFaceMeasure"
+      },
+      "widgets_values": [
+        true
+      ],
+      "widgets_values_named": {
+        "ears": true
+      },
+      "title": "Measure: the repair"
+    },
+    {
+      "id": 4204518726308858,
+      "type": "LoadImage",
+      "pos": [
+        -751.6108822271206,
+        -75.92556708237544
+      ],
+      "size": [
+        282.83333587646484,
+        102
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "image",
+          "name": "image",
+          "type": "COMBO",
+          "widget": {
+            "name": "image"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "choose file to upload",
+          "name": "upload",
+          "type": "IMAGEUPLOAD",
+          "widget": {
+            "name": "upload"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "IMAGE",
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            4443629469463679,
+            3454490290772720,
+            3740323163383693
+          ]
+        },
+        {
+          "localized_name": "MASK",
+          "name": "MASK",
+          "type": "MASK",
+          "links": []
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.42.5",
+        "Node name for S&R": "LoadImage"
+      },
+      "widgets_values": [
+        "before.png",
+        "image"
+      ],
+      "widgets_values_named": {
+        "image": "before.png",
+        "upload": "image"
+      },
+      "title": "Before"
+    },
+    {
+      "id": 4204518726308859,
+      "type": "LoadImage",
+      "pos": [
+        -216.87288222712033,
+        465.4674329176246
+      ],
+      "size": [
+        282.83333587646484,
+        102
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "image",
+          "name": "image",
+          "type": "COMBO",
+          "widget": {
+            "name": "image"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "choose file to upload",
+          "name": "upload",
+          "type": "IMAGEUPLOAD",
+          "widget": {
+            "name": "upload"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "IMAGE",
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            4443629469463683,
+            4443629469463684
+          ]
+        },
+        {
+          "localized_name": "MASK",
+          "name": "MASK",
+          "type": "MASK",
+          "links": []
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.42.5",
+        "Node name for S&R": "LoadImage"
+      },
+      "widgets_values": [
+        "after.png",
+        "image"
+      ],
+      "widgets_values_named": {
+        "image": "after.png",
+        "upload": "image"
+      },
+      "title": "After (the edit)"
+    }
+  ],
+  "links": [
+    [
+      200,
+      202,
+      0,
+      204,
+      0,
+      "IMAGE"
+    ],
+    [
+      203,
+      203,
+      0,
+      207,
+      0,
+      "IMAGE"
+    ],
+    [
+      204,
+      203,
+      1,
+      207,
+      1,
+      "IMAGE"
+    ],
+    [
+      208,
+      209,
+      0,
+      210,
+      0,
+      "IMAGE"
+    ],
+    [
+      209,
+      209,
+      1,
+      210,
+      1,
+      "IMAGE"
+    ],
+    [
+      212,
+      212,
+      0,
+      213,
+      0,
+      "IMAGE"
+    ],
+    [
+      215,
+      214,
+      0,
+      215,
+      0,
+      "IMAGE"
+    ],
+    [
+      217,
+      216,
+      0,
+      217,
+      0,
+      "IMAGE"
+    ],
+    [
+      4267617740407458,
+      195,
+      0,
+      1424860279505132,
+      0,
+      "IMAGE"
+    ],
+    [
+      1164670416087333,
+      4204518726308857,
+      0,
+      1327151682658491,
+      0,
+      "MASK"
+    ],
+    [
+      2936869606566302,
+      2728046978905910,
+      0,
+      3256127898021752,
+      0,
+      "MASK"
+    ],
+    [
+      4410662978259907,
+      4204518726308857,
+      0,
+      1182660652765398,
+      2,
+      "MASK"
+    ],
+    [
+      3220665981724393,
+      2728046978905910,
+      0,
+      1182660652765398,
+      3,
+      "MASK"
+    ],
+    [
+      87636097044512,
+      1182660652765398,
+      0,
+      195,
+      0,
+      "SAMEFACE_DRIFT"
+    ],
+    [
+      2246476122943555,
+      1182660652765398,
+      0,
+      202,
+      0,
+      "SAMEFACE_DRIFT"
+    ],
+    [
+      3820925664921373,
+      1182660652765398,
+      0,
+      203,
+      0,
+      "SAMEFACE_DRIFT"
+    ],
+    [
+      157821103626436,
+      1182660652765398,
+      0,
+      216,
+      0,
+      "SAMEFACE_DRIFT"
+    ],
+    [
+      1501531382095205,
+      1182660652765398,
+      1,
+      2669081375028363,
+      0,
+      "STRING"
+    ],
+    [
+      2257463861366642,
+      195,
+      0,
+      4168275768360940,
+      1,
+      "IMAGE"
+    ],
+    [
+      4443629469463677,
+      4204518726308857,
+      0,
+      4168275768360940,
+      2,
+      "MASK"
+    ],
+    [
+      4030016584567192,
+      1424860279505132,
+      0,
+      4168275768360940,
+      3,
+      "MASK"
+    ],
+    [
+      4021953376276947,
+      4168275768360940,
+      0,
+      212,
+      0,
+      "SAMEFACE_DRIFT"
+    ],
+    [
+      2103688464956848,
+      4168275768360940,
+      0,
+      209,
+      0,
+      "SAMEFACE_DRIFT"
+    ],
+    [
+      3062309949601962,
+      4168275768360940,
+      0,
+      214,
+      0,
+      "SAMEFACE_DRIFT"
+    ],
+    [
+      2904752645061052,
+      4168275768360940,
+      1,
+      3132699844483644,
+      0,
+      "STRING"
+    ],
+    [
+      4443629469463679,
+      4204518726308858,
+      0,
+      4204518726308857,
+      0,
+      "IMAGE"
+    ],
+    [
+      4443629469463683,
+      4204518726308859,
+      0,
+      1182660652765398,
+      1,
+      "IMAGE"
+    ],
+    [
+      4443629469463684,
+      4204518726308859,
+      0,
+      2728046978905910,
+      0,
+      "IMAGE"
+    ],
+    [
+      3454490290772720,
+      4204518726308858,
+      0,
+      1182660652765398,
+      0,
+      "IMAGE"
+    ],
+    [
+      3740323163383693,
+      4204518726308858,
+      0,
+      4168275768360940,
+      0,
+      "IMAGE"
+    ]
+  ],
+  "groups": [],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 0.7513148009015777,
+      "offset": [
+        1008.3903961070694,
+        363.60493071873935
+      ]
+    },
+    "qgn_navigation_groups": [],
+    "qgn_locked": false
+  },
+  "version": 0.4
+}
