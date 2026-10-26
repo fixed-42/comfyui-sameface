@@ -25,6 +25,13 @@ ORDERS = ("surest", "left to right")
 # for an edit that left the hair alone, so the head's shape is measured too.
 REGIONS = ("face", "head")
 
+# A box that holds another, far smaller one is not a second face: asked for
+# "face", the detector sometimes answers with the whole person as well. Held:
+# this share of the small box inside the large; far smaller: this many times
+# less area. One person's face never holds another's whole face.
+HOLDS = 0.9
+OUTSIZE = 4.0
+
 # How far apart an ear (or the hair) and the face may be and still be joined,
 # as a share of the face mask's diagonal. Two masks cut separately seldom meet
 # exactly; this bridges a hairline gap without reaching across a cheek. The
@@ -50,6 +57,26 @@ def pick_face(faces, order="surest", index=0, what="face"):
         raise ValueError(f"{what} {index} asked for, but {len(ranked)} {what}s found "
                          f"(0 to {len(ranked) - 1}, {order})")
     return ranked[index]
+
+
+def _area(box):
+    return max(0.0, box[2] - box[0]) * max(0.0, box[3] - box[1])
+
+
+def _inside(small, large):
+    """The share of `small`'s area inside `large`."""
+    width = max(0.0, min(small[2], large[2]) - max(small[0], large[0]))
+    height = max(0.0, min(small[3], large[3]) - max(small[1], large[1]))
+    return width * height / max(_area(small), 1e-9)
+
+
+def distinct(found):
+    """`found` less every `(box, score)` that holds a far smaller one - the
+    detector's whole-person answer around a face, which would count as a
+    second face and could even be the one measured."""
+    return [(box, score) for box, score in found
+            if not any(_inside(other, box) >= HOLDS and _area(box) >= OUTSIZE * _area(other)
+                       for other, _ in found if other is not box)]
 
 
 def face_in(head_box, faces):

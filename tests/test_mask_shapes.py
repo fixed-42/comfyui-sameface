@@ -9,7 +9,8 @@ so each test knows its answer.
 import numpy as np
 import pytest
 
-from sameface.mask_shapes import ears_beside, face_in, join, outline, parts, pick_face
+from sameface.mask_shapes import (distinct, ears_beside, face_in, join, outline, parts,
+                                  pick_face)
 
 FACE = [100.0, 100.0, 300.0, 400.0]      # 200 wide, 300 tall
 
@@ -60,6 +61,24 @@ def test_a_heads_face_is_the_one_inside_it():
 
 def test_a_head_with_no_face_inside_has_none():
     assert face_in(box(431, 700, 100, 60), FAMILY) is None
+
+
+def test_the_whole_person_answered_as_a_face_is_not_a_second_face():
+    """A portrait as the detector saw it: her face, and her whole figure
+    also called "face" with the face inside it."""
+    face, figure = ([536, 257, 809, 624], 0.55), ([261, 97, 1137, 1421], 0.30)
+    assert distinct([figure, face]) == [face]
+
+
+def test_two_people_side_by_side_are_both_faces():
+    assert distinct(FAMILY) == FAMILY
+
+
+def test_a_box_barely_larger_than_the_face_inside_it_is_kept():
+    """Two boxes on one face of about the same size are left to the order:
+    only a box far larger than the face is the whole person."""
+    face, wider = ([100, 100, 200, 220], 0.6), ([90, 90, 215, 235], 0.4)
+    assert distinct([face, wider]) == [face, wider]
 
 
 def test_no_face_is_an_error():
