@@ -23,7 +23,9 @@ with every setting.
 face by 0.073% of its size. After SameFace's repair, 0.009%: below the noise
 floor, so what is left cannot be told from the measurement's own noise.*
 
-**Demo video** (82 s, captioned): [docs/sameface_demo.mp4](docs/sameface_demo.mp4)
+**Demo video** 
+
+https://github.com/user-attachments/assets/37e553e2-7d3a-49a6-8891-a112d9e83152
 
 ## What it is for
 
