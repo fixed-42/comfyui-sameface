@@ -172,8 +172,12 @@ with ComfyUI's own Python to include it.
 
 Apache-2.0.
 
-The pictures: Lincoln by Alexander Gardner, 1863 (Library of Congress,
-LC-DIG-ppmsca-19301), and the family from the Farm Security Administration/
-Office of War Information collection (Library of Congress), both in the public
-domain; the edits of them, and the portrait with the fan, were made for this
-project with local models.
+The pictures, in this README and in `example_workflows/input/`:
+
+- **The originals** are in the public domain: Lincoln by Alexander Gardner,
+  1863 (Library of Congress, LC-DIG-ppmsca-19301), and the family from the
+  Farm Security Administration/Office of War Information collection (Library
+  of Congress).
+- **The edits of them, and the portrait with the fan,** were made for this
+  project with image models run locally, and are released under this
+  repository's licence, Apache-2.0.
