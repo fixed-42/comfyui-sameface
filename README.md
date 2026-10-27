@@ -1,14 +1,21 @@
 # SameFace
 
-**Measure and repair face drift in ComfyUI**, for old-photo restoration and
-face edits.
+**Measure and repair face drift in ComfyUI**: the small shifts an edit makes
+in a face's shape, too small for the eye to catch.
 
-Restore an old photo, colourise it, or ask an edit model for new hair or a new
-background, and the face often comes back slightly different: an eye a little
-higher, the jaw a little wider, the nose moved. Today's edit models are good
-enough that each change is too small to see, yet together they are why the
-result stops looking quite like the same person. SameFace measures that drift
-point by point across the face, shows where it is, and moves the face back.
+Restore an old photo, colourise it, or ask an edit model for new hair or a
+new background, and the face often comes back slightly different: an eye a
+little higher, the jaw a little wider, the nose moved. People are very good at
+recognising who a face belongs to - so good that we still see the same person
+after the face has been altered. So the changes slip past us: today's edit
+models make each one too small to notice, and together they still move the
+face away from the person it was.
+
+**SameFace puts a number on that drift and shows where it is**, in figures and
+plots. Then it attempts the last mile: it moves the edited face's features
+back to where the original has them, and measures the result again. One node,
+**SameFace Simple**, does all of this; a set of advanced nodes does each step
+with every setting.
 
 ![Lincoln's 1863 portrait with its measured points, the restored and colourised edit with arrows to where each point should be, and the drift of the edit against the repair](docs/images/hero.png)
 
@@ -16,7 +23,9 @@ point by point across the face, shows where it is, and moves the face back.
 face by 0.073% of its size. After SameFace's repair, 0.009%: below the noise
 floor, so what is left cannot be told from the measurement's own noise.*
 
-**Demo video:** *(link to come)*
+**Demo video** 
+
+https://github.com/user-attachments/assets/37e553e2-7d3a-49a6-8891-a112d9e83152
 
 ## What it is for
 
@@ -26,6 +35,10 @@ floor, so what is left cannot be told from the measurement's own noise.*
 - **Comparing edit models and workflows.** One figure per pair, on the same
   scale for every model, down to drift far too small for the eye - with the
   pictures to show where it is.
+- **Character LoRA datasets.** A character LoRA learns whatever face its
+  training images show. If upscaling or enhancing an image drifted the face,
+  the LoRA learns a slightly different person: measure each processed image
+  against its source before it goes into the dataset.
 
 ## Quick start
 
@@ -41,7 +54,10 @@ The sliders are ComfyUI's Compare Images, which shows its slider with
 rgthree's Image Comparer works in its place. Each example has a note saying
 so.
 
-**SameFace Simple** shows the figures on the node and gives:
+**SameFace Simple** shows its figures on the node itself - the edit's drift,
+and what the repair left - so the node alone tells you how far the face
+moved, with nothing wired to its outputs. The outputs give the pictures, and
+the numbers to wire on:
 
 | Output | |
 |---|---|
@@ -92,8 +108,9 @@ histogram of each.
 3. **The drift.** The move, scale and turn of the whole face are fitted and
    taken out; what is left at each point is drift, in % of the face's size.
 4. **The repair.** A smooth warp through the measured points, eased to
-   nothing beyond the face, moves each feature back. The repaired image is
-   then measured again: only a fresh measurement says what the repair left.
+   nothing beyond the face, moves each feature back. SameFace Simple then
+   measures the repaired image again - only a fresh measurement says what the
+   repair left; with the advanced nodes, wire a second Measure.
 
 The **noise floor is 0.01% of face size**: the drift the measurement gives a
 face against a resized, recompressed copy of itself, which has no true drift.
@@ -111,6 +128,18 @@ use, about 1.8 GB, pinned to fixed revisions:
 | [Grounding DINO](https://huggingface.co/IDEA-Research/grounding-dino-base) (base) | finding the face, ears and head from words | Apache-2.0 |
 | [SAM 2.1](https://huggingface.co/facebook/sam2.1-hiera-large) (Hiera large) | outlining them | Apache-2.0 |
 | [RAFT](https://pytorch.org/vision/stable/models/raft.html) (large, torchvision) | the optical flow | BSD-3-Clause |
+
+## Why not face landmarks (MediaPipe, FAN)
+
+Landmark detectors were studied first, before SameFace was built, and they are
+too coarse for drift this small. On null pairs - a face against a resized,
+recompressed copy of itself, so the true drift is zero - MediaPipe's
+landmarks moved 0.19% of face size and FAN's 0.57%, against RAFT's 0.05% on
+the same pairs (0.01% now, with the second pass). The edits SameFace measures
+drift by 0.1-0.3%, so landmark noise is as large as the drift itself.
+Landmarks are also sparse - FAN has 68 named points, where RAFT matches
+several hundred across the face - and the detectors were weakest on profile
+and head-down views. FAN's weights also come with unclear licence terms.
 
 ## Install
 
