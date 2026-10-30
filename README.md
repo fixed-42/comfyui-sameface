@@ -30,8 +30,8 @@ change is easy to let pass. SameFace says where the face moved and how far,
 on one scale for every edit, and moves it back. It measures geometry - where
 the parts of the face went - not likeness.
 
-
 **Demo video**
+
 https://github.com/user-attachments/assets/69bfca1b-3fb7-49b5-9145-54396f8a57ab
 
 ## What it is for
