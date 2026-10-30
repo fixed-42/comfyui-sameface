@@ -37,10 +37,11 @@ https://github.com/user-attachments/assets/69bfca1b-3fb7-49b5-9145-54396f8a57ab
 ## What it is for
 
 SameFace also moves the face back. On the Lincoln pair, its repair - a
-thin-plate spline warp through the measured points - took the drift from
-0.83% to 0.010%, at the noise floor, where what is left cannot be told from
-the measurement's own noise. The rest of the picture stays as the edit made
-it.
+thin-plate spline warp through the measured points - took the whole head's
+drift from 0.83% to a measured 0.010%. A fresh measurement reads what a repair
+leaves too low, though: on a known warp of the same size the truth was 0.033%,
+so expect about 0.03% here, with about 96% of the drift gone. The rest of the
+picture stays as the edit made it.
 
 - **Old-photo restoration and colourisation.** See whether the restored face
   kept its shape, where it changed, and put it back.
@@ -70,8 +71,8 @@ points moved about as far as most edits drift:
 | RAFT, SameFace's two passes | 0.003% |
 
 The edits in this README drift 0.03-0.8%. Landmarks could see the largest,
-but not the small ones, and none could check a repair: the Lincoln repair
-leaves 0.010%, a nineteenth of MediaPipe's noise. A second test, against 20,434
+but not the small ones, and neither could check what a repair leaves: about
+0.03% on Lincoln, a sixth of MediaPipe's noise. A second test, against 20,434
 human-marked points on 284 faces from public landmark datasets, showed the
 same from another side: the detectors' points moved under changes that move
 nothing - blur, JPEG, brightness - and MediaPipe placed the outer eye corners
@@ -83,7 +84,20 @@ check, similarity and affine fits, a thin-plate spline. What SameFace adds is
 putting them to this question: a dense measurement of the drift an edit
 leaves in a face, a second pass that keeps the framing out of the figure, a
 noise floor anyone can re-measure, and a repair that is measured again rather
-than trusted. The figures, their caveats and the study are in
+than trusted.
+
+The **noise floor is 0.01% of face size**: twice the median drift the
+measurement gives a face against a resized, recompressed copy of itself,
+which has no true drift. A tool in this repo re-measures it, on your own
+faces if you like. It says how far the measurement repeats, not how close it
+comes to the truth.
+
+To test that, warps of known size were put through the real models. Measure
+read 99% of a 0.88% drift, 92% of 0.24%, 71% of 0.07% and 42% of 0.024%. What a
+repair really left was then worked out two ways with no RAFT in them, which
+agree. It is all in **[Checking against known
+warps](docs/known-warp-check.md)**, with a tool to run it yourself. The method,
+the figures, their caveats and the study are in
 **[How it measures](docs/how-it-measures.md)**.
 
 ## What it does not do
@@ -95,10 +109,15 @@ than trusted. The figures, their caveats and the study are in
   eyes, in our tries - is not measured at all: the flow cannot follow it
   there and back, so it is left out (orange crosses in the view) and left as
   the edit made it. SameFace is for the drift nobody asked for.
-- **An independent check of the repair.** The repair is graded by measuring
-  it again, with the same method. Nothing independent is fine enough to
-  grade it: the landmark detectors above move more on a null pair than a
-  repair leaves.
+- **Exact figures for very small drift.** Under about 0.1% Measure reads low,
+  and one feature moved a pixel or less can be missed. A repair leaves about
+  0.02-0.03% however small the drift, and a fresh measurement reads that as
+  0.006-0.012%: use it to see that a repair worked, not to say how much is
+  left.
+- **An independent check on a real edit.** The known warps have a true answer;
+  a real edit has none, and it redraws texture, which a warped copy does not.
+  The landmark detectors above move more on a null pair than a repair leaves,
+  so they cannot check one either.
 - **Turned heads.** The fits are flat, so a head turned between the two
   images, or a new expression, reads as drift.
 - **Groups at once.** One face per pair: for a group, measure each person
@@ -126,6 +145,12 @@ shift map, a histogram and the figures; they are described in
 **[The nodes](docs/nodes.md)**. It measures the surest face on each side.
 Turn `repair` off to only measure.
 
+On the Lincoln pair Simple shows about 0.35% and 0.009%, not the figures at
+the top of this page, because it measures the face and ears rather than the
+whole head, and shows whichever of the two fits leaves the smaller median.
+Here that is the affine fit, which takes the widening out of the figure; the
+repair still corrects it.
+
 ![The before with its points, the edit with arrows, the shift map and the repaired image](docs/images/simple_outputs.jpg)
 
 *An edit that put a fan in her hand moved the face by 0.032%; repaired,
@@ -145,6 +170,13 @@ map and a histogram of each. Her head measured 0.211%, and 0.019% after the
 repair (affine fit; a head's figures, hair included, are not comparable with
 a face's).
 
+`example_workflows/sameface_demo_lincoln.json` is the workflow in the demo
+video, on the same Lincoln pictures as the Quick start, measuring the whole
+head with every picture node, with a SameFace Simple beside it. Expect about 0.83% and 0.33% on the edit, and
+about 0.01% after the repair. It uses Set and Get nodes from
+[ComfyUI-KJNodes](https://github.com/kijai/ComfyUI-KJNodes), so install that
+first.
+
 | Node | |
 |---|---|
 | SameFace Measure | runs the models and gives the figures and `drift`, which the others read |
@@ -154,29 +186,6 @@ a face's).
 | SameFace Shift Map | the before with each point coloured by its drift |
 | SameFace Drift Histogram | how far the points drifted, after each fit |
 | SameFace Drift Zones | the face as a grid, each cell's median drift |
-
-## How it works
-
-1. **The face.** Grounding DINO finds it from the words "face" and "ear";
-   SAM 2 outlines it.
-2. **Every point of it.** RAFT optical flow follows each pixel of the before
-   face into the edit and back. A point that does not return to where it
-   started is left out, so texture the edit rewrote is not mistaken for
-   movement. A second pass, with the two faces lined up first, keeps the
-   framing out of the figures.
-3. **The drift.** The move, scale and turn of the whole face are fitted and
-   taken out; what is left at each point is drift, in % of face size (twice
-   the RMS distance of the measured points from their centre).
-4. **The repair.** A thin-plate spline through the points, eased to nothing
-   beyond the face, moves each feature back. Then a fresh measurement of the
-   repaired image says what is left - SameFace Simple does this itself; with
-   the advanced nodes, wire a second Measure.
-
-The **noise floor is 0.01% of face size**: twice the median drift the
-measurement gives a face against a resized, recompressed copy of itself,
-which has no true drift. It is re-measured by a tool in this repo, on your
-own faces if you like. The method, the fits and the limits are in
-**[How it measures](docs/how-it-measures.md)**.
 
 ## Open weights
 
@@ -203,6 +212,9 @@ pip install -r comfyui-sameface/requirements.txt
 ```
 
 Restart ComfyUI; the nodes are under **SameFace**.
+
+The models download automatically on first use: SAM 2.1 (0.9 GB), Grounding
+DINO (0.9 GB) and RAFT (21 MB). VRAM peak usage ~3.2GiB.
 
 ## Tests
 
@@ -231,3 +243,6 @@ The pictures, in this README and in `example_workflows/input/`:
 - **The edits of them, and the portrait with the fan,** were made for this
   project with image models, and are released under this repository's
   licence, Apache-2.0.
+- **The Lincoln edit used in the demo and the examples** came from an online
+  model, in a comparison of edit models: the worst among all the candidates.
+  SameFace and its workflows use open weights only.

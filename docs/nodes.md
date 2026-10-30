@@ -130,7 +130,8 @@ the eyes is not "the eyes".
 Measure the repaired image against the before to see what is left, and View
 that measurement for a before/repaired slider. The warp puts its own points
 where they belong by construction, so only a fresh measurement on the new
-pixels can say whether it helped.
+pixels can say whether it helped. It reads what is left low: see [Checking
+against known warps](known-warp-check.md).
 
 Batches: one before with any number of afters, or as many befores as afters.
 
