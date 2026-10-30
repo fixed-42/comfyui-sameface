@@ -48,8 +48,8 @@ Python, from this folder:
 
 ## Reading a report
 
-The pair in the demo video: Lincoln's 1863 portrait against an edit that
-colourised and restored it. Both sides are masked with SameFace Face Mask
+The pair in the demo video, and in `example_workflows/sameface_demo_lincoln.json`:
+Lincoln's 1863 portrait against an edit that colourised and restored it. Both sides are masked with SameFace Face Mask
 `head`, hair included, since the edit widened the whole head. Measure's
 `report` on the edit:
 
@@ -71,15 +71,19 @@ with the same head masks:
 - **Points**: how many the flow followed there and back, inside the masks.
   When some did not come back, a line says how many more were dropped.
 - **Median**: the headline figure; half the points drifted less. The edit's
-  0.830% and 0.330% are 83 and 33 times the noise floor; the repair's are
-  below it.
+  0.830% and 0.330% are 83 and 33 times the noise floor. The repair's are
+  under it, but the floor was measured on faces and a head runs noisier, so
+  read them as near the floor. On the face alone, what Simple measures, the
+  same repair went from 0.93% to 0.014% (similarity) and 0.353% to 0.009%
+  (affine).
 - **p90, highest**: the 90th percentile and the single largest point.
 - **Above noise**: the share of points beyond the floor - all of them on the
   edit; 44% and 33% after the repair, since the floor is for the median and
   single points scatter more.
 - **Scale, turn**: how much the edit's face is scaled and turned to lie on the
-  original's - here 9% larger and half a degree. Size and tilt are taken out:
-  they are not drift.
+  original's, once the edit has been resized to the original's frame with its
+  proportions kept - here 9% larger and half a degree. Size and tilt are taken
+  out: they are not drift.
 - **Stretch and shear** (affine only): the scale along the edit's own x and y
   axes, and how far they lean from square. Equal stretches mean the
   proportions held. Here the edit's x is scaled by 1.0647 and its y by 1.1044
@@ -169,12 +173,16 @@ faces, which is why it is held to the null test rather than trusted.
   look older or younger.
 - **Not graded by an independent tool.** A repair is checked by measuring the
   repaired image again: a fresh RAFT run on new pixels, not the flow that
-  built the warp, but a bias RAFT has in both runs would not show. Nothing
-  independent is fine enough to check it at this scale - the landmark
-  detectors above move more on a null pair than a repair leaves.
+  built the warp, but a bias RAFT has in both runs would not show. Independent
+  validation at this scale has not been established: the landmark detectors
+  above move more on a null pair than a repair leaves, and no test against a
+  known warp has been run yet.
 - **A floor for the median, not for each point.** Single points scatter more
   than a face's median, so on the shift map read the pattern, not one green
   point; the report's "above noise" share counts points above the same floor.
+- **The floor was measured on faces.** A head mask takes in hair, which
+  measures noisier, so a head's figure near the floor is a reference, not a
+  proof.
 - **The null pairs change size and compression only.** An edit that also
   changes colour or light may bias the flow in ways the floor does not cover.
 - **Flat fits.** A head turned between the two images, or a new expression,
