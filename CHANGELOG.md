@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- The Lincoln example uses the edit in the demo video, and
+  `example_workflows/sameface_demo_lincoln.json` is the video's workflow.
+- `tools/known_warp_check.py` and `docs/known-warp-check.md`: Measure and Repair
+  checked against warps of known size. No node changes.
+
 ## 0.1.1
 
 - The models load from the local cache once downloaded, with no request to

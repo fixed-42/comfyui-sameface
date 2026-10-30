@@ -1,7 +1,8 @@
 # How it measures
 
 The method behind every figure, how to read a report, the study it comes from,
-and what the figures are not. The nodes are in [The nodes](nodes.md).
+and what the figures are not. The nodes are in [The nodes](nodes.md); the test
+against warps of known size is in [Checking against known warps](known-warp-check.md).
 
 1. **Face mask**: Grounding DINO finds the face and the ears from the words
    "face" and "ear"; SAM 2 outlines them. Ears in, neck out. For a head, SAM 2
@@ -39,7 +40,8 @@ The noise floor is **0.01% of face size**: below it, a shift cannot be told
 from the measurement's own noise. It comes from null pairs, each face resampled
 to 512 and 1414 pixels and saved as a JPEG, so the true drift is zero: twice
 their median drift (0.0033% over 25 faces), rounded up to a 1-2-5 step. It is
-a floor for a face's median; single points scatter more. On the shift map,
+a floor for a face's median; single points scatter more. It says how far the
+measurement repeats, not how close it comes to the truth. On the shift map,
 grey is within that floor. To measure it on your own faces, with ComfyUI's
 Python, from this folder:
 
@@ -71,10 +73,11 @@ with the same head masks:
 - **Points**: how many the flow followed there and back, inside the masks.
   When some did not come back, a line says how many more were dropped.
 - **Median**: the headline figure; half the points drifted less. The edit's
-  0.830% and 0.330% are 83 and 33 times the noise floor. The repair's are
-  under it, but the floor was measured on faces and a head runs noisier, so
-  read them as near the floor. On the face alone, what Simple measures, the
-  same repair went from 0.93% to 0.014% (similarity) and 0.353% to 0.009%
+  0.830% and 0.330% are 83 and 33 times the noise floor. The repair's read
+  under it, but a fresh measurement reads a repair low: on a known warp of this
+  size the truth was 0.033% where it read 0.007%. The floor was also measured
+  on faces, and a head runs noisier. On the face alone, what Simple measures,
+  the same repair read 0.93% to 0.014% (similarity) and 0.353% to 0.009%
   (affine).
 - **p90, highest**: the 90th percentile and the single largest point.
 - **Above noise**: the share of points beyond the floor - all of them on the
@@ -162,7 +165,8 @@ those sets are in this repo.
 distinctive, while a landmark must be placed at its named spot whether or not
 the pixels there decide it. The figures say flow is the better instrument for
 this question, not the better face model. RAFT was trained on scenes, not
-faces, which is why it is held to the null test rather than trusted.
+faces, which is why it is held to the null test and to
+[warps of known size](known-warp-check.md) rather than trusted.
 
 
 ## What the figures are not
@@ -171,12 +175,16 @@ faces, which is why it is held to the null test rather than trusted.
   shape and position. Changes of colour, skin texture or expression that leave
   the shape alone are not drift, and a face can measure zero drift and still
   look older or younger.
-- **Not graded by an independent tool.** A repair is checked by measuring the
-  repaired image again: a fresh RAFT run on new pixels, not the flow that
-  built the warp, but a bias RAFT has in both runs would not show. Independent
-  validation at this scale has not been established: the landmark detectors
-  above move more on a null pair than a repair leaves, and no test against a
-  known warp has been run yet.
+- **A fresh measurement reads a repair low.** It is a new RAFT run on new
+  pixels, not the flow that built the warp, and it still read what a repair
+  left up to five times too low: on known warps the truth was 0.014-0.033%
+  where it read 0.006-0.012%. Use it to see that a repair worked, not to say
+  how much is left. On a real edit there is no independent check yet: the
+  landmark detectors above move more on a null pair than a repair leaves, and
+  [the known-warp checks](known-warp-check.md) need a true answer, which a real
+  edit lacks.
+- **Small drift reads low.** Against known warps, Measure read 71% of a 0.07%
+  drift and 42% of 0.024%, so treat figures under about 0.1% as lower bounds.
 - **A floor for the median, not for each point.** Single points scatter more
   than a face's median, so on the shift map read the pattern, not one green
   point; the report's "above noise" share counts points above the same floor.

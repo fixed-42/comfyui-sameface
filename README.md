@@ -38,10 +38,10 @@ https://github.com/user-attachments/assets/69bfca1b-3fb7-49b5-9145-54396f8a57ab
 
 SameFace also moves the face back. On the Lincoln pair, its repair - a
 thin-plate spline warp through the measured points - took the whole head's
-drift from 0.83% to 0.010%. The noise floor is 0.01%, but it was measured on
-faces, and a head with its hair runs noisier; on the face alone, the same
-repair went from 0.93% to 0.014%. The rest of the picture stays as the edit
-made it.
+drift from 0.83% to a measured 0.010%. A fresh measurement reads what a repair
+leaves too low, though: on a known warp of the same size the truth was 0.033%,
+so expect about 0.03% here, with about 96% of the drift gone. The rest of the
+picture stays as the edit made it.
 
 - **Old-photo restoration and colourisation.** See whether the restored face
   kept its shape, where it changed, and put it back.
@@ -71,8 +71,8 @@ points moved about as far as most edits drift:
 | RAFT, SameFace's two passes | 0.003% |
 
 The edits in this README drift 0.03-0.8%. Landmarks could see the largest,
-but not the small ones, and neither could check a repair: the Lincoln repair
-leaves 0.010%, a nineteenth of MediaPipe's noise. A second test, against 20,434
+but not the small ones, and neither could check what a repair leaves: about
+0.03% on Lincoln, a sixth of MediaPipe's noise. A second test, against 20,434
 human-marked points on 284 faces from public landmark datasets, showed the
 same from another side: the detectors' points moved under changes that move
 nothing - blur, JPEG, brightness - and MediaPipe placed the outer eye corners
@@ -89,8 +89,16 @@ than trusted.
 The **noise floor is 0.01% of face size**: twice the median drift the
 measurement gives a face against a resized, recompressed copy of itself,
 which has no true drift. A tool in this repo re-measures it, on your own
-faces if you like. The method, the figures, their caveats and the study are
-in **[How it measures](docs/how-it-measures.md)**.
+faces if you like. It says how far the measurement repeats, not how close it
+comes to the truth.
+
+To test that, warps of known size were put through the real models. Measure
+read 99% of a 0.88% drift, 92% of 0.24%, 71% of 0.07% and 42% of 0.024%. What a
+repair really left was then worked out two ways with no RAFT in them, which
+agree. It is all in **[Checking against known
+warps](docs/known-warp-check.md)**, with a tool to run it yourself. The method,
+the figures, their caveats and the study are in
+**[How it measures](docs/how-it-measures.md)**.
 
 ## What it does not do
 
@@ -101,10 +109,15 @@ in **[How it measures](docs/how-it-measures.md)**.
   eyes, in our tries - is not measured at all: the flow cannot follow it
   there and back, so it is left out (orange crosses in the view) and left as
   the edit made it. SameFace is for the drift nobody asked for.
-- **An independent check of the repair.** The repair is graded by measuring
-  it again, with the same method. Independent validation at this scale has
-  not been established: the landmark detectors above move more on a null pair
-  than a repair leaves, and no test against a known warp has been run yet.
+- **Exact figures for very small drift.** Under about 0.1% Measure reads low,
+  and one feature moved a pixel or less can be missed. A repair leaves about
+  0.02-0.03% however small the drift, and a fresh measurement reads that as
+  0.006-0.012%: use it to see that a repair worked, not to say how much is
+  left.
+- **An independent check on a real edit.** The known warps have a true answer;
+  a real edit has none, and it redraws texture, which a warped copy does not.
+  The landmark detectors above move more on a null pair than a repair leaves,
+  so they cannot check one either.
 - **Turned heads.** The fits are flat, so a head turned between the two
   images, or a new expression, reads as drift.
 - **Groups at once.** One face per pair: for a group, measure each person
