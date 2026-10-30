@@ -1,7 +1,7 @@
 # How it measures
 
-The method behind every figure, the study it comes from, and what the figures
-are not. The nodes are in [The nodes](nodes.md).
+The method behind every figure, how to read a report, the study it comes from,
+and what the figures are not. The nodes are in [The nodes](nodes.md).
 
 1. **Face mask**: Grounding DINO finds the face and the ears from the words
    "face" and "ear"; SAM 2 outlines them. Ears in, neck out. For a head, SAM 2
@@ -44,6 +44,52 @@ grey is within that floor. To measure it on your own faces, with ComfyUI's
 Python, from this folder:
 
     python tools/calibrate_noise_floor.py <folder of face images>
+
+
+## Reading a report
+
+The pair in the demo video: Lincoln's 1863 portrait against an edit that
+colourised and restored it. Both sides are masked with SameFace Face Mask
+`head`, hair included, since the edit widened the whole head. Measure's
+`report` on the edit:
+
+    SameFace drift
+    RAFT, two passes, 362 points on the face; noise floor 0.01% of face size
+      similarity median 0.830%  p90 1.349%  highest 1.99%  above noise 100%
+                 scale 1.0908  turn +0.51 deg
+      affine     median 0.330%  p90 0.536%  highest 0.97%  above noise 100%
+                 scale 1.0843  turn +0.58 deg  stretch x 1.0647 y 1.1044  shear -0.11 deg
+
+And on its repair (Repair, `framing` `after`), measured against the original
+with the same head masks:
+
+      similarity median 0.009%  p90 0.020%  highest 0.08%  above noise 44%
+                 scale 1.0911  turn +0.53 deg
+      affine     median 0.007%  p90 0.017%  highest 0.08%  above noise 33%
+                 scale 1.0911  turn +0.53 deg  stretch x 1.0909 y 1.0912  shear +0.00 deg
+
+- **Points**: how many the flow followed there and back, inside the masks.
+  When some did not come back, a line says how many more were dropped.
+- **Median**: the headline figure; half the points drifted less. The edit's
+  0.830% and 0.330% are 83 and 33 times the noise floor; the repair's are
+  below it.
+- **p90, highest**: the 90th percentile and the single largest point.
+- **Above noise**: the share of points beyond the floor - all of them on the
+  edit; 44% and 33% after the repair, since the floor is for the median and
+  single points scatter more.
+- **Scale, turn**: how much the edit's face is scaled and turned to lie on the
+  original's - here 9% larger and half a degree. Size and tilt are taken out:
+  they are not drift.
+- **Stretch and shear** (affine only): the scale along the edit's own x and y
+  axes, and how far they lean from square. Equal stretches mean the
+  proportions held. Here the edit's x is scaled by 1.0647 and its y by 1.1044
+  to land on the original: the edit's head is 1.1044 / 1.0647 = 1.037 times as
+  wide for its height - 3.7% wider. After the repair, 1.0909 and 1.0912: the
+  proportions are back.
+- **Similarity against affine**: the similarity median, 0.830%, includes that
+  stretch; the affine takes it out and leaves 0.330%, still 33 times the floor.
+  So besides being widened, parts of the face moved against each other - on
+  the view, the arrows around the eyes show it.
 
 
 ## The study behind it
