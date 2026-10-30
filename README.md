@@ -9,16 +9,17 @@ and move them back.** Open weights, runs locally.
 
 *Lincoln, 1863 (left), and an edit that colourised and restored it (right),
 lined up at the same scale. Hint: the head on the right is 3.7% wider for its
-height. SameFace measured the drift, 0.83% of the head's size, and moved it
-back: 0.010% after the repair, at the noise floor, where what is left cannot
-be told from the measurement's own noise.*
+height.*
 
 SameFace follows every point of a face from the original into the edit with
 optical flow (RAFT, inside a Grounded SAM 2 face mask), takes out the move,
 scale and turn of the whole face, and reports what is left - the drift - in %
-of face size, with plots of where it is. It then warps the edit's face back
-with a thin-plate spline and measures the result again. Its noise floor,
-0.01% of face size, can be re-measured with a tool in this repo.
+of face size, with plots of where it is. On the pair above it measured a
+drift of 0.83% of the head's size, and the 3.7% comes from the same
+measurement: to match the original, the edit's head had to be stretched 3.7%
+more in height than in width.
+
+**Ok, so what happened**
 
 Restore an old photo, colourise it, or ask an edit model for new hair or a
 new background, and the face often comes back slightly different: an eye a
@@ -29,11 +30,18 @@ change is easy to let pass. SameFace says where the face moved and how far,
 on one scale for every edit, and moves it back. It measures geometry - where
 the parts of the face went - not likeness.
 
+
 **Demo video**
 
 https://github.com/user-attachments/assets/37e553e2-7d3a-49a6-8891-a112d9e83152
 
 ## What it is for
+
+SameFace also moves the face back. On the Lincoln pair, its repair - a
+thin-plate spline warp through the measured points - took the drift from
+0.83% to 0.010%, at the noise floor, where what is left cannot be told from
+the measurement's own noise. The rest of the picture stays as the edit made
+it.
 
 - **Old-photo restoration and colourisation.** See whether the restored face
   kept its shape, where it changed, and put it back.
@@ -63,8 +71,8 @@ points moved about as far as most edits drift:
 | RAFT, SameFace's two passes | 0.003% |
 
 The edits in this README drift 0.03-0.8%. Landmarks could see the largest,
-but not the small ones, and none could check a repair: the one above leaves
-0.010%, a nineteenth of MediaPipe's noise. A second test, against 20,434
+but not the small ones, and none could check a repair: the Lincoln repair
+leaves 0.010%, a nineteenth of MediaPipe's noise. A second test, against 20,434
 human-marked points on 284 faces from public landmark datasets, showed the
 same from another side: the detectors' points moved under changes that move
 nothing - blur, JPEG, brightness - and MediaPipe placed the outer eye corners

@@ -92,7 +92,7 @@ with the same head masks:
   the view, the arrows around the eyes show it.
 
 Measured again in another run, the same pair gave 0.830% and 0.328%, and its
-repair 0.010% and 0.008% - the figures at the top of the README. The figures
+repair 0.010% and 0.008% - the Lincoln figures in the README. The figures
 repeat to a few thousandths of a percent.
 
 
