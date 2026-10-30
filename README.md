@@ -3,6 +3,16 @@
 **ComfyUI nodes that measure where an image edit moved the parts of a face,
 and move them back.** Open weights, runs locally.
 
+**Can you spot the difference?**
+
+![Lincoln's 1863 portrait and an edit that colourised and restored it, side by side at the same scale](docs/images/spot_the_difference.jpg)
+
+*Lincoln, 1863 (left), and an edit that colourised and restored it (right),
+lined up at the same scale. Hint: the head on the right is 3.7% wider for its
+height. SameFace measured the drift, 0.83% of the head's size, and moved it
+back: 0.010% after the repair, at the noise floor, where what is left cannot
+be told from the measurement's own noise.*
+
 SameFace follows every point of a face from the original into the edit with
 optical flow (RAFT, inside a Grounded SAM 2 face mask), takes out the move,
 scale and turn of the whole face, and reports what is left - the drift - in %
@@ -18,15 +28,6 @@ who a face belongs to so well, it still looks like the same person, so the
 change is easy to let pass. SameFace says where the face moved and how far,
 on one scale for every edit, and moves it back. It measures geometry - where
 the parts of the face went - not likeness.
-
-![A colourised and restored edit of Lincoln's 1863 portrait with the original's head outlined in white, the edit's head spilling over the outline at the ears; the repaired edit back inside it; and the drift of the edit against the repair](docs/images/hero.png)
-
-*Lincoln, 1863, colourised and restored by an edit model. White: the
-original's head outline. Left, the edit lined up with the original: its head
-is 3.7% wider for its height and spills over the outline, a drift of 0.83% of
-its size. Middle, after SameFace's repair: back inside the outline, 0.010% -
-at the noise floor, where what is left cannot be told from the measurement's
-own noise.*
 
 **Demo video**
 
