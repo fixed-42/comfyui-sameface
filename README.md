@@ -32,8 +32,7 @@ the parts of the face went - not likeness.
 
 
 **Demo video**
-
-https://github.com/user-attachments/assets/37e553e2-7d3a-49a6-8891-a112d9e83152
+https://github.com/user-attachments/assets/69bfca1b-3fb7-49b5-9145-54396f8a57ab
 
 ## What it is for
 
