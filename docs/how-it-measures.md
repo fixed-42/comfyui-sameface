@@ -91,6 +91,10 @@ with the same head masks:
   So besides being widened, parts of the face moved against each other - on
   the view, the arrows around the eyes show it.
 
+Measured again in another run, the same pair gave 0.830% and 0.328%, and its
+repair 0.010% and 0.008% - the figures in the README's picture. The figures
+repeat to a few thousandths of a percent.
+
 
 ## The study behind it
 
@@ -124,7 +128,8 @@ own noise:
 Drift in % of face size, as everywhere here. The RAFT row is the study's,
 sampled in a face box; SameFace today, with a face mask and two passes,
 measures 0.0033% on the same kind of null pairs, which is where its 0.01%
-floor comes from. The edits SameFace measures drift 0.03-0.2%. On real
+floor comes from. Most edits SameFace has measured drift 0.03-0.3%; the
+demo's 0.83% is well above that. On real
 before/after pairs the order was the same: RAFT about 0.15%, MediaPipe
 0.57%, FAN 1.2% (one pass, before the face mask).
 
@@ -166,7 +171,7 @@ faces, which is why it is held to the null test rather than trusted.
   repaired image again: a fresh RAFT run on new pixels, not the flow that
   built the warp, but a bias RAFT has in both runs would not show. Nothing
   independent is fine enough to check it at this scale - the landmark
-  detectors above move more on a null pair than the edits do.
+  detectors above move more on a null pair than a repair leaves.
 - **A floor for the median, not for each point.** Single points scatter more
   than a face's median, so on the shift map read the pattern, not one green
   point; the report's "above noise" share counts points above the same floor.

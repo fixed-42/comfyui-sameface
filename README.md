@@ -19,11 +19,14 @@ change is easy to let pass. SameFace says where the face moved and how far,
 on one scale for every edit, and moves it back. It measures geometry - where
 the parts of the face went - not likeness.
 
-![Lincoln's 1863 portrait with its measured points, the restored and colourised edit with arrows to where each point should be, and the drift of the edit against the repair](docs/images/hero.png)
+![A colourised and restored edit of Lincoln's 1863 portrait with the original's head outlined in white, the edit's head spilling over the outline at the ears; the repaired edit back inside it; and the drift of the edit against the repair](docs/images/hero.png)
 
-*Lincoln, 1863, restored and colourised by an edit model. The edit moved the
-face by 0.073% of its size. After SameFace's repair, 0.009%: below the noise
-floor, so what is left cannot be told from the measurement's own noise.*
+*Lincoln, 1863, colourised and restored by an edit model. White: the
+original's head outline. Left, the edit lined up with the original: its head
+is 3.7% wider for its height and spills over the outline, a drift of 0.83% of
+its size. Middle, after SameFace's repair: back inside the outline, 0.010% -
+at the noise floor, where what is left cannot be told from the measurement's
+own noise.*
 
 **Demo video**
 
@@ -49,7 +52,7 @@ through three points leaves nothing over, for any two faces. So the study
 turned to face landmark detectors - MediaPipe's 478-point mesh and FAN's 68
 points - and found them too coarse for drift this small. On null pairs, a
 face against a resized copy of itself, where the true drift is zero, their
-points moved further than the edits do:
+points moved about as far as most edits drift:
 
 | Null pairs: 25 faces, each resized to 512 and 1414 px | Median drift, % of face size |
 |---|---|
@@ -58,7 +61,9 @@ points moved further than the edits do:
 | RAFT optical flow, one pass | 0.025% |
 | RAFT, SameFace's two passes | 0.003% |
 
-The edits in this README drift 0.03-0.2%. A second test, against 20,434
+The edits in this README drift 0.03-0.8%. Landmarks could see the largest,
+but not the small ones, and none could check a repair: the one above leaves
+0.010%, a nineteenth of MediaPipe's noise. A second test, against 20,434
 human-marked points on 284 faces from public landmark datasets, showed the
 same from another side: the detectors' points moved under changes that move
 nothing - blur, JPEG, brightness - and MediaPipe placed the outer eye corners
@@ -84,8 +89,8 @@ than trusted. The figures, their caveats and the study are in
   the edit made it. SameFace is for the drift nobody asked for.
 - **An independent check of the repair.** The repair is graded by measuring
   it again, with the same method. Nothing independent is fine enough to
-  grade it: the landmark detectors above move more on a null pair than the
-  edits do.
+  grade it: the landmark detectors above move more on a null pair than a
+  repair leaves.
 - **Turned heads.** The fits are flat, so a head turned between the two
   images, or a new expression, reads as drift.
 - **Groups at once.** One face per pair: for a group, measure each person
@@ -216,5 +221,5 @@ The pictures, in this README and in `example_workflows/input/`:
   Farm Security Administration/Office of War Information collection (Library
   of Congress).
 - **The edits of them, and the portrait with the fan,** were made for this
-  project with image models run locally, and are released under this
-  repository's licence, Apache-2.0.
+  project with image models, and are released under this repository's
+  licence, Apache-2.0.
