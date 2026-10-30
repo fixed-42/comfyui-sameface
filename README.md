@@ -198,16 +198,6 @@ use, about 1.8 GB, pinned to fixed revisions:
 | [SAM 2.1](https://huggingface.co/facebook/sam2.1-hiera-large) (Hiera large) | outlining them | Apache-2.0 |
 | [RAFT](https://pytorch.org/vision/stable/models/raft.html) (large, torchvision) | the optical flow | BSD-3-Clause |
 
-## What it needs
-
-Tested with ComfyUI 0.42.5 on Linux. On an RTX 5090, a pair measured,
-repaired and measured again peaks at about 3.2 GiB of VRAM and takes 3 s once
-the models are loaded. CPU only works too, at about a minute a pair. AMD GPUs,
-Apple Silicon and smaller NVIDIA cards have not been measured.
-
-The models download automatically on first use: SAM 2.1 (0.9 GB), Grounding
-DINO (0.9 GB) and RAFT (21 MB).
-
 ## Install
 
 From **ComfyUI Manager**: search for SameFace and install.
@@ -222,6 +212,9 @@ pip install -r comfyui-sameface/requirements.txt
 ```
 
 Restart ComfyUI; the nodes are under **SameFace**.
+
+The models download automatically on first use: SAM 2.1 (0.9 GB), Grounding
+DINO (0.9 GB) and RAFT (21 MB). VRAM peak usage ~3.2GiB.
 
 ## Tests
 
