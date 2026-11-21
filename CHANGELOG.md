@@ -1,7 +1,11 @@
 # Changelog
 
-## Unreleased
+## 0.2.0
 
+- Licence: PolyForm Noncommercial 1.0.0 from this version. 0.1.0 and 0.1.1 were
+  released under Apache-2.0 and stay available under it.
+- README rewritten in a technical style: method, figures, noise floor, accuracy
+  against known warps, example, notes.
 - The Lincoln example uses the edit in the demo video, and
   `example_workflows/sameface_demo_lincoln.json` is the video's workflow.
 - `tools/known_warp_check.py` and `docs/known-warp-check.md`: Measure and Repair
